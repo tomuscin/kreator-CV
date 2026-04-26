@@ -249,6 +249,21 @@
   <div class="card hidden" id="card-analysis">
     <h2>Krok 2 — Analiza ogłoszenia</h2>
 
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div>
+        <label>Stanowisko <span style="font-weight:400;color:var(--grey)">(z ogłoszenia)</span></label>
+        <input type="text" id="field-job-title" placeholder="np. Senior Researcher" />
+      </div>
+      <div>
+        <label>Firma <span style="font-weight:400;color:var(--grey)">(z ogłoszenia)</span></label>
+        <input type="text" id="field-company" placeholder="np. Nielsen" />
+      </div>
+      <div>
+        <label>Data publikacji ogłoszenia</label>
+        <input type="date" id="field-job-date" />
+      </div>
+    </div>
+
     <div class="analysis-grid" id="analysis-grid"></div>
 
     <div style="margin-top:20px;">
@@ -314,9 +329,13 @@
 </div>
 
 <script>
-  let jobPosting = '';
-  let adaptedCV  = null;
-  let docxUrl    = '';
+  let jobPosting  = '';
+  let adaptedCV   = null;
+  let docxUrl     = '';
+  let docxFilename = '';
+  let jobTitle    = '';
+  let company     = '';
+  let jobDate     = '';  // YYYY-MM-DD from date input
 
   // ── Step 1: fetch + analyze job posting ───────────────────────────
   async function analyzeJob() {
@@ -344,6 +363,10 @@
   function renderAnalysis(res) {
     const a = res.analysis;
     jobPosting = res.job_posting;
+
+    // Pre-fill editable fields from LLM analysis
+    if (a.job_title) document.getElementById('field-job-title').value = a.job_title;
+    if (a.company)   document.getElementById('field-company').value   = a.company;
 
     const grid = document.getElementById('analysis-grid');
     grid.innerHTML = `
@@ -384,6 +407,12 @@
       document.getElementById('match-score-badge').innerHTML =
         `<span class="match-badge ${cls}">Dopasowanie: ${score}/100</span>`;
       document.getElementById('match-notes').textContent = adaptedCV.match_notes || '';
+
+      // Sync job_title/company from analysis if fields still empty
+      if (!document.getElementById('field-job-title').value && adaptedCV.job_title)
+        document.getElementById('field-job-title').value = adaptedCV.job_title;
+      if (!document.getElementById('field-company').value && adaptedCV.company)
+        document.getElementById('field-company').value = adaptedCV.company;
 
       renderCVPreview(adaptedCV);
       showStatus('status-adapt', '', 'hidden');
@@ -460,11 +489,29 @@
     const edited = collectEditedCV();
     if (!edited) return;
 
+    jobTitle = document.getElementById('field-job-title').value.trim();
+    company  = document.getElementById('field-company').value.trim();
+    jobDate  = document.getElementById('field-job-date').value; // YYYY-MM-DD
+
     showStatus('status-docx', 'Generuję plik .docx...', 'loading');
     try {
-      const res = await api('/api/generate-docx', { job_posting: jobPosting, edited_cv: edited });
-      docxUrl = res.download_url;
+      const res = await api('/api/generate-docx', {
+        job_posting: jobPosting,
+        edited_cv:  edited,
+        job_title:  jobTitle,
+        company:    company,
+        job_url:    document.getElementById('job-url').value.trim(),
+        job_date:   jobDate,
+      });
+      docxUrl      = res.download_url;
+      docxFilename = res.filename;
       document.getElementById('docx-download-link').href = docxUrl;
+
+      // Auto-fill subject: CV {firma} {stanowisko} {YYYY.MM.DD}
+      const dateFmt = jobDate ? jobDate.replaceAll('-', '.') : new Date().toISOString().slice(0,10).replaceAll('-','.');
+      const subject = ['CV', company, jobTitle, dateFmt].filter(Boolean).join(' ');
+      document.getElementById('email-subject').value = subject;
+
       showStatus('status-docx', 'Plik gotowy! Możesz go pobrać lub wysłać mailem.', 'success');
       setStep(4);
       document.getElementById('card-send').classList.remove('hidden');
@@ -476,7 +523,7 @@
 
   // ── Step 4: Send email ────────────────────────────────────────────
   async function sendEmail() {
-    const to = document.getElementById('to-email').value.trim();
+    const to      = document.getElementById('to-email').value.trim();
     const subject = document.getElementById('email-subject').value.trim();
     if (!to) { showStatus('status-send', 'Podaj adres email odbiorcy.', 'error'); return; }
 
@@ -485,7 +532,16 @@
 
     showStatus('status-send', 'Wysyłam email...', 'loading');
     try {
-      await api('/api/send-email', { cv_data: edited, to_email: to, subject });
+      await api('/api/send-email', {
+        cv_data:  edited,
+        to_email: to,
+        subject,
+        filename:  docxFilename,
+        job_title: jobTitle,
+        company:   company,
+        job_url:   document.getElementById('job-url').value.trim(),
+        job_date:  jobDate,
+      });
       showStatus('status-send', `Email wysłany na ${to} ✓`, 'success');
     } catch(e) {
       showStatus('status-send', e.message, 'error');

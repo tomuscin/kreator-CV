@@ -88,6 +88,7 @@ class GenerateDocxRequest(BaseModel):
     job_title:   str = ""
     company:     str = ""
     job_url:     str = ""
+    job_date:    str = ""  # YYYY-MM-DD — publication date of job posting
 
 class ReviseRequest(BaseModel):
     field_name:   str
@@ -103,6 +104,8 @@ class SendRequest(BaseModel):
     filename:  str = "Anna_Jakubowska_CV.docx"
     job_title: str = ""
     company:   str = ""
+    job_url:   str = ""
+    job_date:  str = ""  # YYYY-MM-DD — publication date
 
 
 # ── Routes ────────────────────────────────────────────────────────────
@@ -179,7 +182,7 @@ async def revise(data: ReviseRequest):
 
 @app.post("/api/generate-docx")
 async def generate_docx(data: GenerateDocxRequest):
-    filename = _make_filename("Anna", "Jakubowska", data.job_title, data.company)
+    filename = _make_filename(data.company, data.job_date)
     output_path = OUTPUTS_DIR / filename
     try:
         generate_cv_docx(data.edited_cv, output_path)
@@ -217,7 +220,7 @@ async def download(filename: str):
 @app.post("/api/send-email")
 async def send_email(data: SendRequest):
     filename = data.filename if data.filename.endswith(".docx") else _make_filename(
-        "Anna", "Jakubowska", data.job_title, data.company
+        data.company, data.job_date
     )
     output_path = OUTPUTS_DIR / filename
     if not output_path.exists():
@@ -225,10 +228,23 @@ async def send_email(data: SendRequest):
             generate_cv_docx(data.cv_data, output_path)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Błąd generowania .docx: {e}")
+
+    # Personal message body from Tomasz to Anna
+    job_url_line = f'<p>🔗 <a href="{data.job_url}">{data.job_url}</a></p>' if data.job_url else ""
     body_html = f"""
-    <p>Dzień dobry,</p>
-    <p>W załączeniu przesyłam swoje CV{f' w odpowiedzi na ogłoszenie na stanowisko <strong>{data.job_title}</strong>' if data.job_title else ''}.</p>
-    <br><p>Z poważaniem,<br><strong>Anna Jakubowska</strong><br>annajjakubowska@gmail.com | 509 494 108</p>
+    <p>Kochanie,</p>
+    <p>w załączeniu przesyłam Twoją aplikację:</p>
+    {job_url_line}
+    <p>
+      📌 <strong>Stanowisko:</strong> {data.job_title or '—'}<br>
+      🏢 <strong>Firma:</strong> {data.company or '—'}<br>
+      📅 <strong>Data publikacji:</strong> {data.job_date or '—'}<br>
+      📎 <strong>Załącznik:</strong> {filename}
+    </p>
+    <br>
+    <p>Całusy,<br>
+    <strong>Tomasz</strong><br>
+    Twój Doradca Zawodowy 💼</p>
     """
     try:
         send_cv(to=data.to_email, subject=data.subject, body_html=body_html, docx_path=output_path)
@@ -276,11 +292,10 @@ def _slugify(text: str, max_len: int = 28) -> str:
     return text[:max_len].strip("_")
 
 
-def _make_filename(first_name: str, last_name: str, job_title: str, company: str) -> str:
-    today = date.today().strftime("%Y-%m-%d")
-    parts = ["CV", _slugify(first_name), _slugify(last_name)]
-    if job_title:
-        parts.append(_slugify(job_title))
+def _make_filename(company: str, job_date: str = "") -> str:
+    """Anna Jakubowska_{firma}_{YYYY.MM.DD}.docx — date is generation date."""
+    today = date.today().strftime("%Y.%m.%d")
+    parts = ["Anna Jakubowska"]
     if company:
         parts.append(_slugify(company))
     parts.append(today)

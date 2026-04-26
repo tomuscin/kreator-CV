@@ -54,6 +54,12 @@ def generate_cv_docx(cv_data: dict, output_path: Path) -> Path:
     r2.font.color.rgb = COLOR_LIGHT
     r2.font.name = FONT_NAME
 
+    # LinkedIn link
+    LINKEDIN_URL = "https://www.linkedin.com/in/anna-jakubowska-market-researcher/"
+    p3 = doc.add_paragraph()
+    p3.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _add_hyperlink(p3, "Mój LinkedIn", LINKEDIN_URL, Pt(10))
+
     _add_divider(doc)
 
     # ── Summary ─────────────────────────────────────────────────────
@@ -182,6 +188,38 @@ def _body_paragraph(doc: Document, text: str) -> None:
     run.font.size = Pt(10)
     run.font.color.rgb = COLOR_TEXT
     run.font.name = FONT_NAME
+
+
+def _add_hyperlink(paragraph, text: str, url: str, size: Pt | None = None) -> None:
+    """Inserts a clickable hyperlink into a paragraph."""
+    part = paragraph.part
+    r_id = part.relate_to(
+        url,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",
+        is_external=True,
+    )
+    hyperlink = OxmlElement("w:hyperlink")
+    hyperlink.set(qn("r:id"), r_id)
+
+    new_run = OxmlElement("w:r")
+    rPr = OxmlElement("w:rPr")
+    rStyle = OxmlElement("w:rStyle")
+    rStyle.set(qn("w:val"), "Hyperlink")
+    rPr.append(rStyle)
+    if size:
+        sz = OxmlElement("w:sz")
+        sz.set(qn("w:val"), str(int(size.pt * 2)))
+        sz_cs = OxmlElement("w:szCs")
+        sz_cs.set(qn("w:val"), str(int(size.pt * 2)))
+        rPr.append(sz)
+        rPr.append(sz_cs)
+    new_run.append(rPr)
+
+    t = OxmlElement("w:t")
+    t.text = text
+    new_run.append(t)
+    hyperlink.append(new_run)
+    paragraph._p.append(hyperlink)
 
 
 def _add_divider(doc: Document) -> None:

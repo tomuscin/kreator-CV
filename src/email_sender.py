@@ -6,6 +6,7 @@ Uses SMTP over SSL (port 465) — mail.tomaszuscinski.pl
 import os
 import smtplib
 import ssl
+from email.header import Header
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -52,8 +53,14 @@ def send_cv(
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"]    = f"{SMTP_FROM_NAME} <{SMTP_FROM}>" if SMTP_FROM_NAME else SMTP_FROM
-    msg["To"]      = to
+    # Properly encode non-ASCII display name (Polish chars) per RFC 2047 / RFC 5322
+    if SMTP_FROM_NAME:
+        encoded_name  = Header(SMTP_FROM_NAME, "utf-8").encode()
+        from_address  = f"{encoded_name} <{SMTP_FROM}>"
+    else:
+        from_address  = SMTP_FROM
+    msg["From"] = from_address
+    msg["To"]   = to
 
     plain = body_plain or _strip_html(body_html)
     msg.attach(MIMEText(plain, "plain", "utf-8"))
