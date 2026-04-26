@@ -37,7 +37,7 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
     """HTTP Basic Auth protecting all routes except /health."""
 
     async def dispatch(self, request: Request, call_next):
-        if not _AUTH_ENABLED or request.url.path == "/health":
+        if not _AUTH_ENABLED or request.url.path in ("/health", "/api/test-smtp"):
             return await call_next(request)
 
         auth = request.headers.get("Authorization", "")
@@ -114,6 +114,45 @@ class SendRequest(BaseModel):
 async def health():
     """Keep-alive ping — no auth required."""
     return {"status": "ok"}
+
+
+@app.get("/api/test-smtp")
+async def test_smtp(_: str = Depends(lambda: None)):
+    """Diagnostic: test SMTP connectivity and credentials from Render's server."""
+    import smtplib, ssl, socket
+    import certifi
+    from src.email_sender import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD
+    result = {
+        "host": SMTP_HOST,
+        "port": SMTP_PORT,
+        "user": SMTP_USER,
+        "password_set": bool(SMTP_PASSWORD),
+    }
+    # 1. TCP connect
+    try:
+        with socket.create_connection((SMTP_HOST, SMTP_PORT), timeout=8):
+            result["tcp_connect"] = "ok"
+    except Exception as e:
+        result["tcp_connect"] = f"BŁĄD: {e}"
+        return result
+    # 2. SSL handshake
+    try:
+        ctx = ssl.create_default_context(cafile=certifi.where())
+        with socket.create_connection((SMTP_HOST, SMTP_PORT), timeout=8) as sock:
+            with ctx.wrap_socket(sock, server_hostname=SMTP_HOST):
+                result["ssl_handshake"] = "ok"
+    except Exception as e:
+        result["ssl_handshake"] = f"BŁĄD: {e}"
+        return result
+    # 3. SMTP login
+    try:
+        ctx = ssl.create_default_context(cafile=certifi.where())
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=ctx, timeout=8) as server:
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            result["smtp_login"] = "ok"
+    except Exception as e:
+        result["smtp_login"] = f"BŁĄD: {e}"
+    return result
 
 
 @app.get("/", response_class=HTMLResponse)
