@@ -1,0 +1,9 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+python-dotenv==1.0.1
+openai>=1.75.0
+python-docx==1.1.2
+httpx==0.28.1
+beautifulsoup4==4.13.4
+pdfminer.six==20231228
+certifi

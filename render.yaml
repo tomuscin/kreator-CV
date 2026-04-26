@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: kreator-cv
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false          # wpisz ręcznie w Render dashboard
+      - key: OPENAI_MODEL_PRIMARY
+        value: gpt-5.5
+      - key: OPENAI_MODEL_FALLBACK
+        value: gpt-5.4
+      - key: OPENAI_MODEL_MINI
+        value: gpt-5.4-mini
+      - key: SMTP_HOST
+        value: mail.tomaszuscinski.pl
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USER
+        value: tomasz@tomaszuscinski.pl
+      - key: SMTP_PASSWORD
+        sync: false          # wpisz ręcznie w Render dashboard
+      - key: SMTP_FROM
+        value: tomasz@tomaszuscinski.pl
+      - key: SMTP_FROM_NAME
+        value: "Tomasz Uściński"
+      - key: APP_USERNAME
+        sync: false          # login do Basic Auth (np. anna)
+      - key: APP_PASSWORD
+        sync: false          # hasło do Basic Auth

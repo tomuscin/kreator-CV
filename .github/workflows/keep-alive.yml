@@ -1,0 +1,21 @@
+name: Keep Alive — Render Free Tier
+
+on:
+  schedule:
+    # Co 10 minut (Render zasypia po ~15 min braku ruchu)
+    - cron: "*/10 * * * *"
+  workflow_dispatch:  # ręczne uruchomienie z GitHub UI
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /health
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            "${{ secrets.RENDER_APP_URL }}/health")
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "WARNING: /health returned $STATUS (app may be cold-starting)"
+          fi

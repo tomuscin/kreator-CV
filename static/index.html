@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kreator CV — Anna Jakubowska</title>
+  <style>
+    :root {
+      --navy:  #1A3A5C;
+      --blue:  #2E74B5;
+      --light: #F5F8FC;
+      --border: #D0DFF0;
+      --text:  #1F1F1F;
+      --grey:  #6B7280;
+      --green: #16A34A;
+      --red:   #DC2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--light);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 600; }
+    header span { font-size: 0.85rem; opacity: 0.7; }
+
+    .container { max-width: 1100px; margin: 32px auto; padding: 0 24px; }
+
+    /* Steps */
+    .steps { display: flex; gap: 8px; margin-bottom: 28px; }
+    .step {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      text-align: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--grey);
+      background: #fff;
+      transition: all .2s;
+    }
+    .step.active { border-color: var(--blue); color: var(--blue); background: #EEF4FB; }
+    .step.done   { border-color: var(--green); color: var(--green); background: #F0FDF4; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+    .card h2 { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 16px; }
+
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--grey); }
+    input[type=text], input[type=email], textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color .2s;
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--blue); }
+    textarea { resize: vertical; }
+
+    .or-divider {
+      text-align: center;
+      color: var(--grey);
+      font-size: 0.8rem;
+      margin: 12px 0;
+      position: relative;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 42%;
+      height: 1px;
+      background: var(--border);
+    }
+    .or-divider::before { left: 0; }
+    .or-divider::after  { right: 0; }
+
+    .btn {
+      padding: 10px 22px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-navy    { background: var(--navy); color: #fff; }
+    .btn-green   { background: var(--green); color: #fff; }
+    .btn-outline { background: #fff; color: var(--navy); border: 1.5px solid var(--navy); }
+    .btn-sm      { padding: 6px 14px; font-size: 0.8rem; }
+
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .row .btn { flex: 0 0 auto; }
+
+    /* Analysis */
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .analysis-item h3 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--blue);
+      margin-bottom: 8px;
+    }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+    }
+    .tag.ats { background: #FFF7ED; border-color: #FDBA74; color: #92400E; }
+
+    /* Match score */
+    .match-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .match-high   { background: #F0FDF4; color: var(--green); border: 1.5px solid #86EFAC; }
+    .match-medium { background: #FFFBEB; color: #B45309; border: 1.5px solid #FCD34D; }
+    .match-low    { background: #FEF2F2; color: var(--red); border: 1.5px solid #FCA5A5; }
+
+    /* CV Preview */
+    .cv-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .cv-section { margin-bottom: 20px; }
+    .cv-section h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--blue);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .cv-field { margin-bottom: 14px; }
+    .cv-field label { font-size: 0.75rem; color: var(--grey); margin-bottom: 4px; }
+    .cv-field textarea {
+      min-height: 70px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .job-entry { border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+    .job-entry .job-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .job-entry .job-title { font-weight: 700; font-size: 0.9rem; color: var(--navy); }
+    .job-entry .job-dates { font-size: 0.8rem; color: var(--grey); }
+    .bullet-item { display: flex; gap: 8px; margin-bottom: 6px; }
+    .bullet-item textarea { min-height: 48px; font-size: 0.82rem; }
+    .bullet-item button { background: none; border: none; cursor: pointer; color: var(--red); font-size: 1.1rem; padding: 4px; align-self: flex-start; }
+
+    /* Status */
+    .status {
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+    .status.info    { background: #EEF4FB; color: var(--blue); }
+    .status.success { background: #F0FDF4; color: var(--green); }
+    .status.error   { background: #FEF2F2; color: var(--red); }
+    .status.loading { background: #F5F5F5; color: var(--grey); }
+
+    .hidden { display: none !important; }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Kreator CV</h1>
+    <span>Anna Jakubowska — dostosowanie CV do ogłoszenia rekrutacyjnego</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Step indicators -->
+  <div class="steps">
+    <div class="step active" id="step-1">1. Ogłoszenie</div>
+    <div class="step" id="step-2">2. Analiza</div>
+    <div class="step" id="step-3">3. Podgląd CV</div>
+    <div class="step" id="step-4">4. Wyślij</div>
+  </div>
+
+  <!-- STEP 1: Job input -->
+  <div class="card" id="card-job">
+    <h2>Krok 1 — Wklej link lub treść ogłoszenia</h2>
+
+    <label>Link do ogłoszenia</label>
+    <input type="text" id="job-url" placeholder="https://pracuj.pl/... lub LinkedIn, NoFluffJobs, itp." />
+
+    <div class="or-divider">lub</div>
+
+    <label>Wklej treść ogłoszenia</label>
+    <textarea id="job-text" rows="8" placeholder="Skopiuj i wklej tutaj pełną treść ogłoszenia..."></textarea>
+
+    <div class="row" style="margin-top:16px;">
+      <button class="btn btn-primary" onclick="analyzeJob()">Analizuj ogłoszenie →</button>
+    </div>
+    <div id="status-fetch" class="status hidden"></div>
+  </div>
+
+  <!-- STEP 2: Analysis results -->
+  <div class="card hidden" id="card-analysis">
+    <h2>Krok 2 — Analiza ogłoszenia</h2>
+
+    <div class="analysis-grid" id="analysis-grid"></div>
+
+    <div style="margin-top:20px;">
+      <div id="match-score-badge"></div>
+      <p id="match-notes" style="margin-top:8px; font-size:0.85rem; color:var(--grey);"></p>
+    </div>
+
+    <div class="row" style="margin-top:20px;">
+      <button class="btn btn-navy" onclick="generateCV()">
+        Generuj dopasowane CV →
+      </button>
+      <button class="btn btn-outline" onclick="resetStep(1)">← Zmień ogłoszenie</button>
+    </div>
+    <div id="status-adapt" class="status hidden"></div>
+  </div>
+
+  <!-- STEP 3: CV Preview + edit -->
+  <div class="card hidden" id="card-preview">
+    <h2>Krok 3 — Podgląd i edycja CV</h2>
+    <p style="font-size:0.82rem; color:var(--grey); margin-bottom:18px;">
+      Sprawdź i popraw treść przed wysyłką. Możesz edytować każde pole.
+      Stanowiska, daty i wykształcenie są zablokowane — tylko opisy mogą być zmienione.
+    </p>
+
+    <div id="cv-preview-content"></div>
+
+    <div class="row" style="margin-top:20px;">
+      <button class="btn btn-navy" onclick="generateDocx()">
+        Generuj .docx →
+      </button>
+      <button class="btn btn-outline" onclick="resetStep(2)">← Wróć</button>
+    </div>
+    <div id="status-docx" class="status hidden"></div>
+  </div>
+
+  <!-- STEP 4: Send -->
+  <div class="card hidden" id="card-send">
+    <h2>Krok 4 — Wyślij CV mailem</h2>
+
+    <div style="display:grid; gap:14px;">
+      <div>
+        <label>Adres email odbiorcy</label>
+        <input type="email" id="to-email" placeholder="rekruter@firma.pl" />
+      </div>
+      <div>
+        <label>Temat wiadomości</label>
+        <input type="text" id="email-subject" value="Aplikacja na stanowisko – Anna Jakubowska" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:20px;">
+      <button class="btn btn-green" onclick="sendEmail()">
+        Wyślij CV →
+      </button>
+      <a id="docx-download-link" class="btn btn-outline" style="text-decoration:none;" target="_blank">
+        ⬇ Pobierz .docx
+      </a>
+      <button class="btn btn-outline" onclick="resetStep(3)">← Wróć do edycji</button>
+    </div>
+    <div id="status-send" class="status hidden"></div>
+  </div>
+
+</div>
+
+<script>
+  let jobPosting = '';
+  let adaptedCV  = null;
+  let docxUrl    = '';
+
+  // ── Step 1: fetch + analyze job posting ───────────────────────────
+  async function analyzeJob() {
+    const url  = document.getElementById('job-url').value.trim();
+    const text = document.getElementById('job-text').value.trim();
+    if (!url && !text) { showStatus('status-fetch', 'Podaj URL lub wklej treść ogłoszenia.', 'error'); return; }
+
+    showStatus('status-fetch', 'Pobieram i analizuję ogłoszenie...', 'loading');
+
+    try {
+      // Step 1: fetch raw text
+      const fetchRes = await api('/api/fetch-job', { url: url || null, text: text || null });
+      jobPosting = fetchRes.job_posting;
+
+      // Step 2: analyze
+      const analyzeRes = await api('/api/analyze', { url: null, text: jobPosting });
+      renderAnalysis(analyzeRes);
+      showStatus('status-fetch', '', 'hidden');
+
+    } catch(e) {
+      showStatus('status-fetch', e.message, 'error');
+    }
+  }
+
+  function renderAnalysis(res) {
+    const a = res.analysis;
+    jobPosting = res.job_posting;
+
+    const grid = document.getElementById('analysis-grid');
+    grid.innerHTML = `
+      ${analysisBlock('Wymagane doświadczenie', a.required_experience || [])}
+      ${analysisBlock('Główne obowiązki', a.responsibilities || [])}
+      ${analysisBlock('Technologie / narzędzia', a.technologies || [])}
+      ${analysisBlock('Ton ogłoszenia', [a.tone || '—'])}
+      ${analysisBlock('Priorytetowe kompetencje', a.priority_competencies || [])}
+      ${analysisBlock('Słowa kluczowe ATS', a.ats_keywords || [], true)}
+    `;
+
+    // Match score — shown after CV generation
+    document.getElementById('match-score-badge').innerHTML = '';
+    document.getElementById('match-notes').textContent = '';
+
+    setStep(2);
+    document.getElementById('card-analysis').classList.remove('hidden');
+  }
+
+  function analysisBlock(title, items, ats = false) {
+    const tags = (Array.isArray(items) ? items : [items])
+      .filter(Boolean)
+      .map(i => `<span class="tag${ats ? ' ats' : ''}">${i}</span>`)
+      .join('');
+    return `<div class="analysis-item"><h3>${title}</h3><div class="tag-list">${tags || '<span class="tag">—</span>'}</div></div>`;
+  }
+
+  // ── Step 2: generate adapted CV ───────────────────────────────────
+  async function generateCV() {
+    showStatus('status-adapt', 'Generuję dopasowane CV przez GPT-5.5...', 'loading');
+    try {
+      const res = await api('/api/adapt', { job_posting: jobPosting });
+      adaptedCV = res.adapted_cv;
+
+      // Show match score
+      const score = adaptedCV.match_score || 0;
+      const cls   = score >= 75 ? 'match-high' : score >= 50 ? 'match-medium' : 'match-low';
+      document.getElementById('match-score-badge').innerHTML =
+        `<span class="match-badge ${cls}">Dopasowanie: ${score}/100</span>`;
+      document.getElementById('match-notes').textContent = adaptedCV.match_notes || '';
+
+      renderCVPreview(adaptedCV);
+      showStatus('status-adapt', '', 'hidden');
+      setStep(3);
+      document.getElementById('card-preview').classList.remove('hidden');
+      document.getElementById('card-preview').scrollIntoView({ behavior: 'smooth' });
+    } catch(e) {
+      showStatus('status-adapt', e.message, 'error');
+    }
+  }
+
+  // ── CV Preview renderer ────────────────────────────────────────────
+  function renderCVPreview(cv) {
+    const el = document.getElementById('cv-preview-content');
+    el.innerHTML = '';
+
+    // Summary
+    el.appendChild(cvSection('Podsumowanie zawodowe', `
+      <div class="cv-field">
+        <textarea id="cv-summary" rows="5">${cv.summary || ''}</textarea>
+      </div>
+    `));
+
+    // Competencies
+    el.appendChild(cvSection('Kompetencje', `
+      <div class="cv-field">
+        <textarea id="cv-competencies" rows="4">${(cv.competencies || []).join('\n')}</textarea>
+        <label style="margin-top:4px;">Jedna kompetencja per linia</label>
+      </div>
+    `));
+
+    // Experience
+    const expHtml = (cv.experience || []).map((job, ji) => `
+      <div class="job-entry">
+        <div class="job-header">
+          <span class="job-title">${job.title}</span>
+          <span class="job-dates">${job.dates}</span>
+        </div>
+        <div id="bullets-${ji}">
+          ${(job.bullets || []).map((b, bi) => bulletItem(ji, bi, b)).join('')}
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addBullet(${ji})" style="margin-top:8px;">+ Dodaj punkt</button>
+      </div>
+    `).join('');
+    el.appendChild(cvSection('Doświadczenie zawodowe', expHtml));
+  }
+
+  function bulletItem(ji, bi, text) {
+    return `<div class="bullet-item" id="bullet-${ji}-${bi}">
+      <textarea rows="2" id="bt-${ji}-${bi}">${text}</textarea>
+      <button onclick="removeBullet(${ji},${bi})" title="Usuń">✕</button>
+    </div>`;
+  }
+
+  function addBullet(ji) {
+    const container = document.getElementById(`bullets-${ji}`);
+    const bi = container.querySelectorAll('.bullet-item').length;
+    container.insertAdjacentHTML('beforeend', bulletItem(ji, bi, ''));
+  }
+
+  function removeBullet(ji, bi) {
+    document.getElementById(`bullet-${ji}-${bi}`)?.remove();
+  }
+
+  function cvSection(title, html) {
+    const div = document.createElement('div');
+    div.className = 'cv-section';
+    div.innerHTML = `<h3>${title}</h3>${html}`;
+    return div;
+  }
+
+  // ── Step 3: Generate .docx ────────────────────────────────────────
+  async function generateDocx() {
+    const edited = collectEditedCV();
+    if (!edited) return;
+
+    showStatus('status-docx', 'Generuję plik .docx...', 'loading');
+    try {
+      const res = await api('/api/generate-docx', { job_posting: jobPosting, edited_cv: edited });
+      docxUrl = res.download_url;
+      document.getElementById('docx-download-link').href = docxUrl;
+      showStatus('status-docx', 'Plik gotowy! Możesz go pobrać lub wysłać mailem.', 'success');
+      setStep(4);
+      document.getElementById('card-send').classList.remove('hidden');
+      document.getElementById('card-send').scrollIntoView({ behavior: 'smooth' });
+    } catch(e) {
+      showStatus('status-docx', e.message, 'error');
+    }
+  }
+
+  // ── Step 4: Send email ────────────────────────────────────────────
+  async function sendEmail() {
+    const to = document.getElementById('to-email').value.trim();
+    const subject = document.getElementById('email-subject').value.trim();
+    if (!to) { showStatus('status-send', 'Podaj adres email odbiorcy.', 'error'); return; }
+
+    const edited = collectEditedCV();
+    if (!edited) return;
+
+    showStatus('status-send', 'Wysyłam email...', 'loading');
+    try {
+      await api('/api/send-email', { cv_data: edited, to_email: to, subject });
+      showStatus('status-send', `Email wysłany na ${to} ✓`, 'success');
+    } catch(e) {
+      showStatus('status-send', e.message, 'error');
+    }
+  }
+
+  // ── Collect edited CV data from form ─────────────────────────────
+  function collectEditedCV() {
+    if (!adaptedCV) return null;
+    const cv = JSON.parse(JSON.stringify(adaptedCV)); // deep clone
+
+    cv.summary      = document.getElementById('cv-summary')?.value || cv.summary;
+    cv.competencies = (document.getElementById('cv-competencies')?.value || '')
+      .split('\n').map(s => s.trim()).filter(Boolean);
+
+    cv.experience = (cv.experience || []).map((job, ji) => {
+      const container = document.getElementById(`bullets-${ji}`);
+      const bullets = [];
+      if (container) {
+        container.querySelectorAll('textarea').forEach(ta => {
+          if (ta.value.trim()) bullets.push(ta.value.trim());
+        });
+      }
+      return { ...job, bullets };
+    });
+
+    return cv;
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────
+  async function api(endpoint, body) {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `Błąd HTTP ${res.status}`);
+    return data;
+  }
+
+  function showStatus(id, msg, type) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (type === 'hidden' || !msg) { el.className = 'status hidden'; return; }
+    el.className = `status ${type}`;
+    el.innerHTML = type === 'loading'
+      ? `<span class="spinner"></span>${msg}`
+      : msg;
+  }
+
+  function setStep(n) {
+    document.querySelectorAll('.step').forEach((el, i) => {
+      el.classList.remove('active', 'done');
+      if (i + 1 < n)  el.classList.add('done');
+      if (i + 1 === n) el.classList.add('active');
+    });
+  }
+
+  function resetStep(n) {
+    if (n <= 2) { document.getElementById('card-analysis').classList.add('hidden'); setStep(1); }
+    if (n <= 3) { document.getElementById('card-preview').classList.add('hidden'); }
+    if (n <= 3) { document.getElementById('card-send').classList.add('hidden'); setStep(n); }
+  }
+</script>
+
+</body>
+</html>

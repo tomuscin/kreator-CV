@@ -1,0 +1,106 @@
+{
+  "_meta": {
+    "source": "Anna Jakubowska CV – matka.pdf",
+    "note": "To jest źródło prawdy. LLM NIE może dodawać nowych doświadczeń, stanowisk ani wykształcenia. Może jedynie przeakcentować i podkreślić istniejące treści pod kątem wymagań ogłoszenia.",
+    "version": "1.0",
+    "generated": "2026-04-26"
+  },
+
+  "personal": {
+    "name": "Anna Jakubowska",
+    "phone": "509 494 108",
+    "email": "annajjakubowska@gmail.com"
+  },
+
+  "summary": "Ekspertka consumer insights i badań rynkowych z ponad 20-letnim doświadczeniem w realizacji projektów badawczych oraz wspieraniu decyzji biznesowych na podstawie danych konsumenckich i rynkowych. Łączę doświadczenie zdobyte zarówno w firmach badawczych, jak i po stronie biznesu, współpracując z zespołami marketingu, sprzedaży, e-commerce, CX i rozwoju oferty. Specjalizuję się w prowadzeniu projektów badawczych end-to-end, analizie trendów i zachowań konsumentów oraz przekładaniu wyników badań na praktyczne rekomendacje biznesowe.",
+
+  "competencies": [
+    "Insighty konsumenckie",
+    "Badania rynku",
+    "Badania jakościowe i ilościowe",
+    "Analiza trendów i zachowań konsumentów",
+    "Formułowanie rekomendacji strategicznych",
+    "Przekładanie danych na wnioski biznesowe",
+    "Zarządzanie projektami badawczymi",
+    "Współpraca z agencjami badawczymi",
+    "Współpraca z zespołami biznesowymi",
+    "Raportowanie i prezentacja wyników",
+    "Wsparcie decyzji dotyczących oferty i komunikacji",
+    "Wykorzystanie narzędzi AI (Copilot, OpenAI)"
+  ],
+
+  "education": [
+    {
+      "institution": "Uniwersytet Warszawski",
+      "faculty": "Instytut Socjologii, Wydział Filozofii i Socjologii",
+      "degree": "magister socjologii"
+    },
+    {
+      "institution": "Stowarzyszenie Komunikacji Marketingowej SAR",
+      "faculty": "Szkoła Strategii Marki",
+      "degree": ""
+    }
+  ],
+
+  "languages": [
+    {
+      "language": "Język angielski",
+      "level": "B2+"
+    }
+  ],
+
+  "interests": "Consumer & Market Insights – analiza trendów konsumenckich i rynkowych, zmiany społeczne, foresight",
+
+  "experience": [
+    {
+      "title": "Insights Leader",
+      "dates": "2020 – nadal",
+      "bullets": [
+        "Wspieranie decyzji biznesowych dotyczących oferty, komunikacji i doświadczeń klientów na podstawie badań konsumenckich i analiz rynkowych",
+        "Odpowiedzialność za obszar badań marki realizowany we współpracy z marketingiem, w tym badań trackingowych",
+        "Analiza potrzeb konsumentów, barier zakupowych oraz zmian zachowań klientów",
+        "Współpraca z agencjami badawczymi i partnerami wewnętrznymi w zakresie realizacji badań i wykorzystania danych",
+        "Przekładanie wyników badań na praktyczne rekomendacje dla zespołów marketingu, sprzedaży, e-commerce i CX",
+        "Monitorowanie trendów konsumenckich i rynkowych w celu identyfikacji szans i ryzyk dla biznesu"
+      ]
+    },
+    {
+      "title": "Freelancer – badaczka",
+      "dates": "2015 – 2020",
+      "bullets": [
+        "Samodzielna i częściowa realizacja projektów jakościowych",
+        "Współudział w projektach ilościowo-jakościowych",
+        "Koordynacja i realizacja badań konsumenckich",
+        "Współpraca z firmami badawczymi i moderatorami",
+        "Całościowa i częściowa realizacja projektów badawczych"
+      ]
+    },
+    {
+      "title": "Copy Testing Team Manager / Senior Project Manager",
+      "dates": "2007 – 2015",
+      "bullets": [
+        "Zarządzanie i koordynacja pracy zespołu ilościowo-jakościowego",
+        "Prowadzenie projektów badawczych wspierających decyzje klientów w obszarze komunikacji i skuteczności działań marketingowych",
+        "Rozwój narzędzi badawczych i dbałość o jakość realizowanych projektów",
+        "Współpraca z klientami i wsparcie w interpretacji wyników badań"
+      ]
+    },
+    {
+      "title": "Senior Research Executive – zespół jakościowy",
+      "dates": "2006 – 2007",
+      "bullets": [
+        "Samodzielna realizacja projektów jakościowych oraz udział w projektach mixed-methods",
+        "Koordynacja i realizacja badań konsumenckich",
+        "Współpraca z moderatorami i firmami badawczymi",
+        "Analiza wyników i przygotowywanie wniosków dla klientów biznesowych"
+      ]
+    },
+    {
+      "title": "Project Manager / Badaczka – zespół jakościowo-ilościowy",
+      "dates": "do 2006",
+      "bullets": []
+    }
+  ],
+
+  "rodo_clause": "Wyrażam zgodę na przetwarzanie moich danych osobowych zawartych w ofercie pracy dla potrzeb niezbędnych do realizacji procesu rekrutacji zgodnie z ustawą z dnia 29.08.1997 r. o ochronie danych osobowych (Dz.U. z 2002 r. Nr 101, poz.926, ze zm.)."
+}
