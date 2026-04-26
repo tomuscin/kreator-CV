@@ -13,7 +13,8 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "_shared"))
+# openai_client.py lives at project root (works both locally and on Render)
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from openai_client import chat  # noqa: E402
 
 MASTER_CV_PATH = Path(__file__).parent.parent / "data" / "master_cv.json"
