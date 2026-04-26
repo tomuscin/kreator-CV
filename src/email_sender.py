@@ -16,12 +16,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SMTP_HOST     = os.environ["SMTP_HOST"]
-SMTP_PORT     = int(os.environ.get("SMTP_PORT", "465"))
-SMTP_USER     = os.environ["SMTP_USER"]
-SMTP_PASSWORD = os.environ["SMTP_PASSWORD"]
-SMTP_FROM     = os.environ.get("SMTP_FROM", SMTP_USER)
-SMTP_FROM_NAME = os.environ.get("SMTP_FROM_NAME", "")
+# Use .get() with defaults — KeyError at import time crashes the whole app on Render.
+# Missing critical vars are caught lazily inside send_cv().
+SMTP_HOST      = os.environ.get("SMTP_HOST", "mail.tomaszuscinski.pl")
+SMTP_PORT      = int(os.environ.get("SMTP_PORT", "465"))
+SMTP_USER      = os.environ.get("SMTP_USER", "tomasz@tomaszuscinski.pl")
+SMTP_PASSWORD  = os.environ.get("SMTP_PASSWORD", "")
+SMTP_FROM      = os.environ.get("SMTP_FROM", SMTP_USER)
+SMTP_FROM_NAME = os.environ.get("SMTP_FROM_NAME", "Tomasz Uściński")
 
 
 def send_cv(
