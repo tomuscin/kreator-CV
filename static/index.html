@@ -290,9 +290,30 @@
 
     <div id="cv-preview-content"></div>
 
+    <!-- ── AI Chat ─────────────────────────────────────────────────── -->
+    <div id="ai-chat-box" style="margin-top:28px; border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+      <div style="background:var(--navy); color:#fff; padding:10px 16px; font-size:0.82rem; font-weight:600; display:flex; align-items:center; gap:8px;">
+        <span>✨</span> Popraw CV z pomocą AI
+      </div>
+
+      <div id="chat-history" style="padding:12px 16px; display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto; background:#fafcff;"></div>
+
+      <div style="display:flex; gap:8px; padding:12px 16px; border-top:1px solid var(--border); background:#fff;">
+        <textarea id="chat-instruction"
+          rows="2"
+          placeholder="np. Podkreśl doświadczenie marketingowe, skróć podsumowanie, dodaj więcej słów kluczowych z ogłoszenia..."
+          style="flex:1; border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:0.85rem; resize:vertical; font-family:inherit;"
+        ></textarea>
+        <button class="btn btn-navy" onclick="sendChatInstruction()" id="btn-chat-send" style="align-self:flex-end; white-space:nowrap;">
+          Zastosuj →
+        </button>
+      </div>
+      <div id="status-chat" class="status hidden" style="margin:0 16px 12px;"></div>
+    </div>
+
     <div class="row" style="margin-top:20px;">
       <button class="btn btn-navy" onclick="generateDocx()">
-        Generuj .docx →
+        Generuj moje CV →
       </button>
       <button class="btn btn-outline" onclick="resetStep(2)">← Wróć</button>
     </div>
@@ -482,6 +503,58 @@
     div.className = 'cv-section';
     div.innerHTML = `<h3>${title}</h3>${html}`;
     return div;
+  }
+
+  // ── AI Chat: revise entire CV ─────────────────────────────────────
+  async function sendChatInstruction() {
+    const instruction = document.getElementById('chat-instruction').value.trim();
+    if (!instruction) return;
+
+    const current = collectEditedCV();
+    if (!current) return;
+
+    // Add user bubble to chat history
+    addChatBubble('user', instruction);
+    document.getElementById('chat-instruction').value = '';
+    document.getElementById('btn-chat-send').disabled = true;
+    showStatus('status-chat', 'AI poprawia CV...', 'loading');
+
+    try {
+      const res = await api('/api/revise-cv', {
+        current_cv:  current,
+        instruction: instruction,
+        job_posting: jobPosting,
+      });
+      adaptedCV = res.revised_cv;
+      renderCVPreview(adaptedCV);
+      addChatBubble('ai', 'Gotowe — CV zostało zaktualizowane zgodnie z instrukcją.');
+      showStatus('status-chat', '', 'hidden');
+    } catch(e) {
+      addChatBubble('ai', `Błąd: ${e.message}`);
+      showStatus('status-chat', e.message, 'error');
+    } finally {
+      document.getElementById('btn-chat-send').disabled = false;
+    }
+  }
+
+  function addChatBubble(role, text) {
+    const history = document.getElementById('chat-history');
+    const isUser  = role === 'user';
+    const bubble  = document.createElement('div');
+    bubble.style.cssText = `
+      max-width: 88%;
+      align-self: ${isUser ? 'flex-end' : 'flex-start'};
+      background: ${isUser ? 'var(--navy)' : '#eef4fb'};
+      color: ${isUser ? '#fff' : 'var(--text)'};
+      border-radius: ${isUser ? '12px 12px 2px 12px' : '12px 12px 12px 2px'};
+      padding: 8px 12px;
+      font-size: 0.83rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    `;
+    bubble.textContent = text;
+    history.appendChild(bubble);
+    history.scrollTop = history.scrollHeight;
   }
 
   // ── Step 3: Generate .docx ────────────────────────────────────────

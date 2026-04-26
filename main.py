@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.cv_adapter import adapt_cv, analyze_job_posting, revise_field
+from src.cv_adapter import adapt_cv, analyze_job_posting, revise_field, revise_full_cv
 from src.docx_generator import generate_cv_docx
 from src.email_sender import send_cv
 from src.history import add_entry, get_all, delete_entry
@@ -96,6 +96,11 @@ class ReviseRequest(BaseModel):
     user_comment: str
     job_posting:  str
     char_limit:   int
+
+class ReviseCVRequest(BaseModel):
+    current_cv:  dict
+    instruction: str
+    job_posting: str = ""
 
 class SendRequest(BaseModel):
     cv_data:   dict
@@ -217,6 +222,23 @@ async def revise(data: ReviseRequest):
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
     return {"revised_text": revised}
+
+
+@app.post("/api/revise-cv")
+async def revise_cv_endpoint(data: ReviseCVRequest):
+    if not data.instruction.strip():
+        raise HTTPException(status_code=400, detail="Instrukcja jest wymagana.")
+    try:
+        revised = revise_full_cv(
+            current_cv=data.current_cv,
+            instruction=data.instruction,
+            job_posting=data.job_posting,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    return {"revised_cv": revised}
 
 
 @app.post("/api/generate-docx")

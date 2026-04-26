@@ -274,3 +274,90 @@ Zwróć TYLKO poprawiony tekst (max {char_limit} znaków)."""
     if revised.startswith('"') and revised.endswith('"'):
         revised = revised[1:-1]
     return revised
+
+
+def revise_full_cv(current_cv: dict, instruction: str, job_posting: str) -> dict:
+    """
+    Revises the entire adapted CV based on a free-form user instruction.
+
+    The structure (personal, education, languages) is preserved.
+    Only summary, competencies, and experience bullets may change.
+
+    Args:
+        current_cv:   Current adapted CV dict (as rendered in the editor).
+        instruction:  User's free-form instruction (e.g. "Podkreśl marketing").
+        job_posting:  Job posting for ATS context.
+
+    Returns:
+        Updated CV dict (same structure as adapt_cv output).
+    """
+    cv_snapshot = {
+        "summary":      current_cv.get("summary", ""),
+        "competencies": current_cv.get("competencies", []),
+        "experience":   [
+            {
+                "title":   job["title"],
+                "dates":   job["dates"],
+                "bullets": job.get("bullets", []),
+            }
+            for job in current_cv.get("experience", [])
+        ],
+    }
+
+    schema = {
+        "summary":      "string — poprawione podsumowanie (max 900 znaków)",
+        "competencies": "list[string] — poprawiona lista kompetencji (max 14, łącznie max 600 znaków)",
+        "experience": [
+            {
+                "title":   "string — BEZ ZMIAN z wejścia",
+                "dates":   "string — BEZ ZMIAN z wejścia",
+                "bullets": "list[string] — poprawione punkty, każdy max 200 znaków",
+            }
+        ],
+    }
+
+    user_message = f"""
+## OBECNA TREŚĆ CV (do poprawy):
+{json.dumps(cv_snapshot, ensure_ascii=False, indent=2)}
+
+## OGŁOSZENIE (kontekst ATS):
+{job_posting[:1500]}
+
+## INSTRUKCJA UŻYTKOWNIKA:
+{instruction}
+
+## ZASADY (bezwzględne):
+- NIE zmieniaj title ani dates w experience — skopiuj dokładnie z wejścia
+- NIE dodawaj nowych stanowisk, firm ani osiągnięć których nie ma w wejściu
+- Zastosuj instrukcję użytkownika do treści
+- LIMITY: podsumowanie max 900 znaków, kompetencje łącznie max 600, każdy bullet max 200
+- Zwróć TYLKO poprawny JSON zgodny ze schematem poniżej:
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+""".strip()
+
+    response = chat(
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_message},
+        ],
+        max_completion_tokens=4000,
+    )
+
+    raw = response.choices[0].message.content.strip()
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
+
+    try:
+        revised = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"LLM zwrócił niepoprawny JSON: {exc}\n\nRaw:\n{raw}") from exc
+
+    # Merge back — lock structure from current_cv, update editable fields only
+    result = dict(current_cv)
+    result["summary"]      = revised.get("summary", current_cv.get("summary", ""))
+    result["competencies"] = revised.get("competencies", current_cv.get("competencies", []))
+    result["experience"]   = _merge_experience(
+        current_cv.get("experience", []),
+        revised.get("experience", []),
+    )
+    return result
