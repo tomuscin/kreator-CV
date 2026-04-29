@@ -269,6 +269,7 @@
     <div style="margin-top:20px;">
       <div id="match-score-badge"></div>
       <p id="match-notes" style="margin-top:8px; font-size:0.85rem; color:var(--grey);"></p>
+      <div id="gap-analysis-badge" style="margin-top:12px; display:none;"></div>
     </div>
 
     <div class="row" style="margin-top:20px;">
@@ -402,6 +403,8 @@
     // Match score — shown after CV generation
     document.getElementById('match-score-badge').innerHTML = '';
     document.getElementById('match-notes').textContent = '';
+    document.getElementById('gap-analysis-badge').style.display = 'none';
+    document.getElementById('gap-analysis-badge').innerHTML = '';
 
     setStep(2);
     document.getElementById('card-analysis').classList.remove('hidden');
@@ -428,6 +431,42 @@
       document.getElementById('match-score-badge').innerHTML =
         `<span class="match-badge ${cls}">Dopasowanie: ${score}/100</span>`;
       document.getElementById('match-notes').textContent = adaptedCV.match_notes || '';
+
+      // Gap analysis badge
+      const gapBadge = document.getElementById('gap-analysis-badge');
+      const gapAnalysis = adaptedCV.experience_gap_analysis || {};
+      const gapTitle = (
+        (gapAnalysis.title || '').toLowerCase().startsWith('experience') ||
+        (gapAnalysis.title || '').toLowerCase().startsWith('niedopasowanie')
+      ) ? gapAnalysis.title : 'Niedopasowanie doświadczenia do ogłoszenia';
+      const gapText         = gapAnalysis.text || '';
+      const gapConfirmed    = gapAnalysis.confirmed_strengths || [];
+      const gapGaps         = gapAnalysis.gaps || [];
+      const gapTransferable = gapAnalysis.transferable_angles || [];
+      const gapDoNotClaim   = gapAnalysis.do_not_claim || [];
+
+      if (gapText || gapGaps.length > 0) {
+        let gapHTML = `<div style="border-left:3px solid #e07b00; padding:8px 12px; background:#fff8f0; border-radius:0 8px 8px 0;">`;
+        gapHTML += `<div style="font-weight:600; color:#b05000; margin-bottom:6px;">${gapTitle}</div>`;
+        if (gapText) {
+          gapHTML += `<div style="color:#4a3000; line-height:1.5;">${gapText}</div>`;
+        }
+        if (gapConfirmed.length > 0) {
+          gapHTML += `<div style="margin-top:8px; color:#1a5c1a;"><strong>&#10003; Potwierdzone:</strong> ${gapConfirmed.join(' · ')}</div>`;
+        }
+        if (gapGaps.length > 0) {
+          gapHTML += `<div style="margin-top:4px; color:#b05000;"><strong>&#8710; Luki:</strong> ${gapGaps.join(' · ')}</div>`;
+        }
+        if (gapTransferable.length > 0) {
+          gapHTML += `<div style="margin-top:4px; color:#0055aa;"><strong>&#8594; Transferowalne:</strong> ${gapTransferable.join(' · ')}</div>`;
+        }
+        if (gapDoNotClaim.length > 0) {
+          gapHTML += `<div style="margin-top:4px; color:#888;"><strong>&#8856; Nie dopisuj:</strong> ${gapDoNotClaim.join(' · ')}</div>`;
+        }
+        gapHTML += '</div>';
+        gapBadge.innerHTML = gapHTML;
+        gapBadge.style.display = 'block';
+      }
 
       // Sync job_title/company from analysis if fields still empty
       if (!document.getElementById('field-job-title').value && adaptedCV.job_title)

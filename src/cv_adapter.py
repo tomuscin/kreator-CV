@@ -44,6 +44,17 @@ LIMITY ZNAKÓW (bezwzględne — nie przekraczaj):
 - Każdy punkt w doświadczeniu (każde bullet): max 200 znaków
 Jeśli tekst przekroczyłby limit — skróć, zachowując kluczowe informacje i słowa ATS.
 
+ANALIZA LUK / NIEDOPASOWANIA (experience_gap_analysis):
+Po wygenerowaniu sekcji CV przygotuj krótką analizę luk dla użytkownika. Zawiera:
+- title: tytuł sekcji — "Niedopasowanie doświadczenia do ogłoszenia" (pl) lub "Experience gaps vs. job posting" (en-US).
+- text: jeden krótki, naturalny akapit (3-6 zdań) opisujący, które wymagania ogłoszenia profil kandydata spełnia, a których nie potwierdza wprost. Ton: neutralny, praktyczny, profesjonalny. Nie krytykuj kandydata.
+- confirmed_strengths: lista obszarów wyraźnie potwierdzonych w profilu i pasujących do ogłoszenia.
+- gaps: lista wymagań z ogłoszenia, których profil nie potwierdza wprost.
+- transferable_angles: lista pokrewnych doświadczeń, które można bezpiecznie zaakcentować jako substytut.
+- do_not_claim: lista elementów, których LLM nie powinien dopisywać jako faktów (bo ich nie ma w profilu bazowym).
+Ta analiza służy tylko użytkownikowi w UI przed wysyłką CV. NIE wstawiaj do sekcji CV.
+Przy poprawianiu CV (revise): zachowaj lub zaktualizuj experience_gap_analysis.
+
 Odpowiedź zawsze w formacie JSON, zgodnie ze schematem wyjściowym.
 Język: polski.
 """.strip()
@@ -68,8 +79,43 @@ OUTPUT_SCHEMA = {
         "not_used": [{"keyword": "string", "reason": "string — dlaczego nie użyto"}]
     },
     "company": "string — nazwa firmy z ogłoszenia (lub '' jeśli brak)",
-    "job_title": "string — stanowisko z ogłoszenia"
+    "job_title": "string — stanowisko z ogłoszenia",
+    "experience_gap_analysis": {
+        "title":               "string — 'Niedopasowanie doświadczenia do ogłoszenia' (pl) lub 'Experience gaps vs. job posting' (en-US)",
+        "text":                "string — akapit 3-6 zdań: co potwierdzone, czego brak, co transferowalne",
+        "confirmed_strengths": "list[string] — obszary wyraźnie potwierdzone w profilu",
+        "gaps":                "list[string] — wymagania ogłoszenia niepotwierdzone w profilu",
+        "transferable_angles": "list[string] — pokrewne doświadczenia jako substytut",
+        "do_not_claim":        "list[string] — czego nie dopisywać jako faktu",
+    },
 }
+
+
+def _validate_gap_analysis(adapted: dict) -> dict:
+    """
+    Validates and normalises the experience_gap_analysis field from LLM response.
+    Returns a safe dict with all expected sub-fields.
+    """
+    raw = adapted.get("experience_gap_analysis", {})
+    if not isinstance(raw, dict):
+        raw = {}
+
+    def _str(key: str) -> str:
+        v = raw.get(key, "")
+        return v if isinstance(v, str) else ""
+
+    def _list(key: str) -> list:
+        v = raw.get(key, [])
+        return v if isinstance(v, list) else []
+
+    return {
+        "title":               _str("title") or "Niedopasowanie doświadczenia do ogłoszenia",
+        "text":                _str("text"),
+        "confirmed_strengths": _list("confirmed_strengths"),
+        "gaps":                _list("gaps"),
+        "transferable_angles": _list("transferable_angles"),
+        "do_not_claim":        _list("do_not_claim"),
+    }
 
 
 def adapt_cv(job_posting: str, master_cv: dict | None = None) -> dict:
@@ -110,7 +156,8 @@ Po wygenerowaniu CV, przeanalizuj:
 - których nie użyto i dlaczego — bo nie ma pokrycia w matce CV (ats_report.not_used),
 - które wymagania z ogłoszenia są dobrze pokryte przez CV (covered_requirements),
 - jakie luki istnieją między ogłoszeniem a profilem (gaps),
-- wyodrębnij nazwę firmy i stanowisko z ogłoszenia.
+- wyodrębnij nazwę firmy i stanowisko z ogłoszenia,
+- przygotuj experience_gap_analysis: krótki akapit + listy confirmed_strengths, gaps, transferable_angles, do_not_claim.
 
 Zwróć TYLKO poprawny JSON zgodny z tym schematem:
 {json.dumps(OUTPUT_SCHEMA, ensure_ascii=False, indent=2)}
@@ -150,6 +197,7 @@ Zwróć TYLKO poprawny JSON zgodny z tym schematem:
         "ats_report":          adapted.get("ats_report", {"used": [], "not_used": []}),
         "company":             adapted.get("company", ""),
         "job_title":           adapted.get("job_title", ""),
+        "experience_gap_analysis": _validate_gap_analysis(adapted),
     }
 
     return result
@@ -360,4 +408,6 @@ def revise_full_cv(current_cv: dict, instruction: str, job_posting: str) -> dict
         current_cv.get("experience", []),
         revised.get("experience", []),
     )
+    # Preserve existing gap analysis — revise_full_cv doesn’t regenerate it
+    result["experience_gap_analysis"] = current_cv.get("experience_gap_analysis", {})
     return result
