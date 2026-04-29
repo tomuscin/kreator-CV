@@ -9,11 +9,11 @@ services:
       - key: OPENAI_API_KEY
         sync: false          # wpisz ręcznie w Render dashboard
       - key: OPENAI_MODEL_PRIMARY
-        value: gpt-5.5
+        value: gpt-4.1
       - key: OPENAI_MODEL_FALLBACK
-        value: gpt-5.4
+        value: gpt-4.1-mini
       - key: OPENAI_MODEL_MINI
-        value: gpt-5.4-mini
+        value: gpt-4.1-mini
       - key: SMTP_HOST
         value: mail.tomaszuscinski.pl
       - key: SMTP_PORT
