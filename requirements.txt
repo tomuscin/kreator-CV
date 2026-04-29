@@ -7,3 +7,4 @@ httpx==0.28.1
 beautifulsoup4==4.13.4
 pdfminer.six==20231228
 certifi
+resend==2.10.0

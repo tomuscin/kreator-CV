@@ -123,16 +123,31 @@ async def health():
 
 @app.get("/api/test-smtp")
 async def test_smtp(_: str = Depends(lambda: None)):
-    """Diagnostic: test SMTP connectivity and credentials from Render's server."""
-    import smtplib, ssl, socket
-    import certifi
-    from src.email_sender import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD
+    """Diagnostic: test email transport (Resend or SMTP) from Render's server."""
+    from src.email_sender import RESEND_API_KEY, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD
     result = {
+        "transport": "resend" if RESEND_API_KEY else "smtp",
+        "resend_key_set": bool(RESEND_API_KEY),
         "host": SMTP_HOST,
         "port": SMTP_PORT,
         "user": SMTP_USER,
         "password_set": bool(SMTP_PASSWORD),
     }
+    if RESEND_API_KEY:
+        import httpx
+        try:
+            resp = httpx.get(
+                "https://api.resend.com/emails/00000000-0000-0000-0000-000000000000",
+                headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
+                timeout=10,
+            )
+            result["resend_api"] = "ok" if resp.status_code != 401 else "BŁĄD: nieprawidłowy klucz API"
+        except Exception as e:
+            result["resend_api"] = f"BŁĄD: {e}"
+        return result
+    # SMTP path
+    import smtplib, ssl, socket
+    import certifi
     # 1. TCP connect
     try:
         with socket.create_connection((SMTP_HOST, SMTP_PORT), timeout=8):
