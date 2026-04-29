@@ -15,6 +15,9 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# ── Candidate identity (used to separate AJ/TU records in shared DB) ───
+CANDIDATE_NAME = "Anna Jakubowska"
+
 # ── Role type labels ──────────────────────────────────────────────────
 
 ROLE_TYPE_LABELS: dict[str, str] = {
@@ -117,7 +120,8 @@ CREATE TABLE IF NOT EXISTS cv_applications (
   excluded_keywords TEXT NULL,
 
   notes TEXT NULL,
-  error_message TEXT NULL
+  error_message TEXT NULL,
+  candidate_name VARCHAR(255) NULL
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 """
 
@@ -152,6 +156,7 @@ _MIGRATION_COLUMNS: dict[str, str] = {
     "excluded_keywords":    "TEXT NULL",
     "notes":                "TEXT NULL",
     "error_message":        "TEXT NULL",
+    "candidate_name":       "VARCHAR(255) NULL",
 }
 
 
@@ -259,7 +264,7 @@ def save_application(data: dict) -> int | None:
                     match_score,
                     confirmed_strengths, gaps, transferable_angles,
                     do_not_claim, used_keywords, excluded_keywords,
-                    notes, error_message
+                    notes, error_message, candidate_name
                 ) VALUES (
                     %s, %s,
                     %s, %s, %s,
@@ -272,7 +277,7 @@ def save_application(data: dict) -> int | None:
                     %s,
                     %s, %s, %s,
                     %s, %s, %s,
-                    %s, %s
+                    %s, %s, %s
                 )
                 """,
                 (
@@ -307,6 +312,7 @@ def save_application(data: dict) -> int | None:
                     _list_to_json(data.get("excluded_keywords")),
                     data.get("notes", ""),
                     data.get("error_message", ""),
+                    CANDIDATE_NAME,
                 ),
             )
             new_id = cur.lastrowid
@@ -414,8 +420,8 @@ def list_applications(
     if _db_config() is None:
         return None
     try:
-        where_clauses: list[str] = []
-        params: list = []
+        where_clauses: list[str] = ["candidate_name = %s"]
+        params: list = [CANDIDATE_NAME]
         if status:
             where_clauses.append("status = %s")
             params.append(status)
@@ -457,7 +463,8 @@ def get_application(record_id: int) -> dict | None:
         conn = _get_conn()
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT * FROM cv_applications WHERE id = %s", (record_id,)
+                "SELECT * FROM cv_applications WHERE id = %s AND candidate_name = %s",
+                (record_id, CANDIDATE_NAME),
             )
             row = cur.fetchone()
             result = _row_to_dict(row, cur) if row else None
@@ -475,39 +482,45 @@ def get_stats() -> dict:
     try:
         conn = _get_conn()
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM cv_applications")
+            _cn = CANDIDATE_NAME
+            cur.execute("SELECT COUNT(*) FROM cv_applications WHERE candidate_name = %s", (_cn,))
             total = cur.fetchone()[0]
 
-            cur.execute("SELECT COUNT(*) FROM cv_applications WHERE status = 'sent'")
+            cur.execute("SELECT COUNT(*) FROM cv_applications WHERE status = 'sent' AND candidate_name = %s", (_cn,))
             sent = cur.fetchone()[0]
 
             cur.execute(
                 "SELECT COUNT(*) FROM cv_applications "
-                "WHERE YEAR(created_at)=YEAR(NOW()) AND MONTH(created_at)=MONTH(NOW())"
+                "WHERE YEAR(created_at)=YEAR(NOW()) AND MONTH(created_at)=MONTH(NOW()) AND candidate_name = %s",
+                (_cn,),
             )
             this_month = cur.fetchone()[0]
 
             cur.execute(
-                "SELECT COUNT(*) FROM cv_applications WHERE cv_output_language = 'en-US'"
+                "SELECT COUNT(*) FROM cv_applications WHERE cv_output_language = 'en-US' AND candidate_name = %s",
+                (_cn,),
             )
             en_us = cur.fetchone()[0]
 
             cur.execute(
-                "SELECT COUNT(*) FROM cv_applications WHERE cv_output_language = 'pl'"
+                "SELECT COUNT(*) FROM cv_applications WHERE cv_output_language = 'pl' AND candidate_name = %s",
+                (_cn,),
             )
             pl_count = cur.fetchone()[0]
 
             cur.execute(
                 "SELECT role_type, COUNT(*) AS cnt FROM cv_applications "
-                "WHERE role_type IS NOT NULL AND role_type != '' "
-                "GROUP BY role_type ORDER BY cnt DESC LIMIT 1"
+                "WHERE role_type IS NOT NULL AND role_type != '' AND candidate_name = %s "
+                "GROUP BY role_type ORDER BY cnt DESC LIMIT 1",
+                (_cn,),
             )
             row = cur.fetchone()
             top_role = row[0] if row else ""
 
             cur.execute(
                 "SELECT COUNT(*) FROM cv_applications "
-                "WHERE status IN ('send_error', 'storage_error')"
+                "WHERE status IN ('send_error', 'storage_error') AND candidate_name = %s",
+                (_cn,),
             )
             errors = cur.fetchone()[0]
 
