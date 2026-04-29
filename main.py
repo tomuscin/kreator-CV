@@ -1,28 +1,37 @@
 """
-Kreator CV — FastAPI main application.
+Kreator CV — FastAPI main application — Anna Jakubowska.
 """
 
+import asyncio
 import json
+import json as _json_mod
 import os
 import re
 import secrets
 from datetime import date
+from io import BytesIO
 from pathlib import Path
+from urllib.parse import quote
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.cv_adapter import adapt_cv, analyze_job_posting, revise_field, revise_full_cv
-from src.docx_generator import generate_cv_docx
+from src.docx_generator import generate_cv_docx, generate_cv_docx_bytes
 from src.email_sender import send_cv
 from src.history import add_entry, get_all, delete_entry
 from src.job_scraper import fetch_job_posting
+import src.application_repository as app_repo
+import src.storage as storage
 
 load_dotenv()
+
+# Initialise DB (no-op if DB_ENABLED=false or credentials missing)
+app_repo.init_db()
 
 BASE_DIR    = Path(__file__).parent
 OUTPUTS_DIR = BASE_DIR / "outputs"
@@ -67,7 +76,7 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-app = FastAPI(title="Kreator CV", version="2.0.0")
+app = FastAPI(title="Kreator CV — Anna Jakubowska", version="2.0.0")
 app.add_middleware(BasicAuthMiddleware)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
@@ -91,11 +100,12 @@ class GenerateDocxRequest(BaseModel):
     job_date:    str = ""  # YYYY-MM-DD — publication date of job posting
 
 class ReviseRequest(BaseModel):
-    field_name:   str
-    current_text: str
-    user_comment: str
-    job_posting:  str
-    char_limit:   int
+    field_name:         str
+    current_text:       str
+    user_comment:       str
+    job_posting:        str
+    char_limit:         int
+    cv_output_language: str = "pl"  # preserve CV language during revision
 
 class ReviseCVRequest(BaseModel):
     current_cv:  dict
@@ -111,6 +121,17 @@ class SendRequest(BaseModel):
     company:   str = ""
     job_url:   str = ""
     job_date:  str = ""  # YYYY-MM-DD — publication date
+    record_id: int | None = None  # DB record id from generate-docx
+
+
+class ContactRequest(BaseModel):
+    contact_person: str = ""
+    contact_phone:  str = ""
+    contact_email:  str = ""
+
+
+class NotesRequest(BaseModel):
+    notes: str = ""
 
 
 # ── Routes ────────────────────────────────────────────────────────────
@@ -222,6 +243,63 @@ async def adapt(data: AdaptRequest):
     return {"adapted_cv": adapted}
 
 
+@app.post("/api/adapt-stream")
+async def adapt_stream(data: AdaptRequest):
+    """
+    Streaming version of /api/adapt using Server-Sent Events.
+    Sends an immediate 'started' event to prevent Render 30s timeout,
+    then runs adapt_cv in a thread pool and sends the result when done.
+    Times out after 130 seconds and returns a controlled error event.
+    """
+    if len(data.job_posting) < 50:
+        raise HTTPException(status_code=400, detail="Treść ogłoszenia jest za krótka.")
+
+    async def event_generator():
+        # Immediate event — prevents 30s gateway timeout
+        yield 'data: {"status":"started"}\n\n'
+        loop = asyncio.get_event_loop()
+        try:
+            adapted = await asyncio.wait_for(
+                loop.run_in_executor(
+                    None,
+                    lambda: adapt_cv(data.job_posting, master_cv=data.edited_cv),
+                ),
+                timeout=130.0,
+            )
+            result = _json_mod.dumps(
+                {"status": "done", "adapted_cv": adapted}, ensure_ascii=False
+            )
+            yield f"data: {result}\n\n"
+        except asyncio.TimeoutError:
+            yield 'data: {"status":"error","detail":"Generowanie CV przekroczyło limit czasu (130s). Spróbuj ponownie lub skróć ogłoszenie."}\n\n'
+        except (ValueError, RuntimeError) as exc:
+            msg = str(exc)
+            if "rate_limit" in msg.lower() or "rate limit" in msg.lower():
+                msg = "Limit zapytań OpenAI wyczerpany. Poczekaj chwilę i spróbuj ponownie."
+            elif "context_length" in msg.lower() or "token" in msg.lower() and "exceed" in msg.lower():
+                msg = "Ogłoszenie jest zbyt długie dla modelu AI. Spróbuj skrócić treść ogłoszenia."
+            elif "connection" in msg.lower() or "timeout" in msg.lower():
+                msg = "Problem z połączeniem do OpenAI. Sprawdź internet i spróbuj ponownie."
+            elif "authentication" in msg.lower() or "api_key" in msg.lower() or "unauthorized" in msg.lower():
+                msg = "Błąd uwierzytelnienia OpenAI. Skontaktuj się z administratorem."
+            elif "insufficient_quota" in msg.lower() or "quota" in msg.lower():
+                msg = "Wyczerpany limit OpenAI (brak środków na koncie). Skontaktuj się z administratorem."
+            err = _json_mod.dumps({"status": "error", "detail": msg}, ensure_ascii=False)
+            yield f"data: {err}\n\n"
+        except Exception as exc:
+            err = _json_mod.dumps(
+                {"status": "error", "detail": f"Nieoczekiwany błąd: {type(exc).__name__}"},
+                ensure_ascii=False,
+            )
+            yield f"data: {err}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 @app.post("/api/revise")
 async def revise(data: ReviseRequest):
     if not data.user_comment.strip():
@@ -233,6 +311,7 @@ async def revise(data: ReviseRequest):
             user_comment=data.user_comment,
             job_posting=data.job_posting,
             char_limit=data.char_limit,
+            cv_output_language=data.cv_output_language,
         )
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
@@ -264,6 +343,8 @@ async def generate_docx(data: GenerateDocxRequest):
         generate_cv_docx(data.edited_cv, output_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Błąd generowania .docx: {e}")
+
+    # ── Legacy JSON history (keep existing) ──────────────────────────
     try:
         add_entry(
             company=data.company,
@@ -276,7 +357,61 @@ async def generate_docx(data: GenerateDocxRequest):
         )
     except Exception:
         pass
-    return {"filename": filename, "download_url": f"/api/download/{filename}"}
+
+    # ── FTP upload ───────────────────────────────────────────────────
+    ftp_result = storage.upload_docx(
+        local_path=output_path,
+        job_title=data.job_title,
+        company_name=data.company,
+        date_str=data.job_date,
+    )
+    remote_path = ftp_result.get("remote_path", "")
+    public_url  = ftp_result.get("public_url", "")
+
+    # ── DB record ────────────────────────────────────────────────────
+    cv  = data.edited_cv
+    gap = cv.get("experience_gap_analysis", {})
+    ats = cv.get("ats_keyword_strategy", {})
+    rt  = cv.get("role_type", "")
+
+    if ftp_result["ok"]:
+        db_status = "generated"
+    elif ftp_result["reason"] == "disabled":
+        db_status = "storage_skipped"
+    else:
+        db_status = "storage_error"
+
+    record_id = app_repo.save_application({
+        "job_posting_date":     data.job_date or None,
+        "company_name":         data.company,
+        "job_title":            data.job_title,
+        "role_type":            rt,
+        "role_type_label":      app_repo.role_type_label(rt),
+        "role_type_confidence": cv.get("role_type_confidence", ""),
+        "job_language":         cv.get("job_language", ""),
+        "cv_output_language":   cv.get("cv_output_language", ""),
+        "job_url":              data.job_url,
+        "source_type":          "kreator",
+        "status":               db_status,
+        "cv_filename":          filename,
+        "cv_local_path":        str(output_path),
+        "cv_remote_path":       remote_path,
+        "cv_public_url":        public_url,
+        "match_score":          cv.get("match_score"),
+        "confirmed_strengths":  gap.get("confirmed_strengths", []),
+        "gaps":                 gap.get("gaps", []),
+        "transferable_angles":  gap.get("transferable_angles", []),
+        "do_not_claim":         gap.get("do_not_claim", []),
+        "used_keywords":        ats.get("used_keywords", []),
+        "excluded_keywords":    ats.get("excluded_keywords", []),
+        "error_message":        ftp_result.get("error", "") if not ftp_result["ok"] and ftp_result["reason"] == "error" else "",
+    })
+
+    return {
+        "filename":     filename,
+        "download_url": f"/api/download/{quote(filename)}",
+        "record_id":    record_id,
+    }
 
 
 @app.get("/api/download/{filename}")
@@ -298,12 +433,11 @@ async def send_email(data: SendRequest):
     filename = data.filename if data.filename.endswith(".docx") else _make_filename(
         data.company, data.job_date
     )
-    output_path = OUTPUTS_DIR / filename
-    if not output_path.exists():
-        try:
-            generate_cv_docx(data.cv_data, output_path)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Błąd generowania .docx: {e}")
+    # Generate DOCX in memory — avoids ephemeral filesystem issues on Render
+    try:
+        docx_bytes = generate_cv_docx_bytes(data.cv_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Błąd generowania .docx: {e}")
 
     # Personal message body from Tomasz to Anna
     job_url_line = f'<p>🔗 <a href="{data.job_url}">{data.job_url}</a></p>' if data.job_url else ""
@@ -323,9 +457,31 @@ async def send_email(data: SendRequest):
     Twój Doradca Zawodowy 💼</p>
     """
     try:
-        send_cv(to=data.to_email, subject=data.subject, body_html=body_html, docx_path=output_path)
+        send_cv(
+            to=data.to_email,
+            subject=data.subject,
+            body_html=body_html,
+            docx_bytes=docx_bytes,
+            docx_filename=filename,
+        )
     except Exception as e:
+        # Update DB status to send_error if possible
+        if data.record_id:
+            app_repo.update_status(
+                data.record_id, "send_error",
+                error_message=f"Email send failed: {type(e).__name__}",
+            )
         raise HTTPException(status_code=500, detail=f"Błąd wysyłki maila: {e}")
+
+    # Update DB status to sent
+    if data.record_id:
+        app_repo.update_status(
+            data.record_id, "sent",
+            sent_to_email=data.to_email,
+            sent_at=__import__('datetime').datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            email_subject=data.subject,
+        )
+
     return {"status": "sent", "to": data.to_email, "filename": filename}
 
 
@@ -339,6 +495,93 @@ async def history_delete(entry_id: str):
     if not delete_entry(entry_id):
         raise HTTPException(status_code=404, detail="Wpis nie istnieje.")
     return {"status": "deleted"}
+
+
+# ── Applications dashboard API ────────────────────────────────────────
+
+@app.get("/api/applications/export.csv")
+async def export_csv(
+    request: Request,
+):
+    """CSV export of all application records."""
+    from fastapi.responses import Response as FapiResponse
+    csv_data = app_repo.export_csv()
+    return FapiResponse(
+        content=csv_data,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="cv_applications.csv"'},
+    )
+
+
+@app.get("/api/applications")
+async def list_applications(
+    status:             str | None = None,
+    role_type:          str | None = None,
+    cv_output_language: str | None = None,
+    company_name:       str | None = None,
+    date_from:          str | None = None,
+    date_to:            str | None = None,
+):
+    items = app_repo.list_applications(
+        status=status,
+        role_type=role_type,
+        cv_output_language=cv_output_language,
+        company_name=company_name,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    if items is None:
+        return JSONResponse({
+            "ok": True,
+            "database_enabled": False,
+            "reason": "database_disabled",
+            "items": [],
+            "stats": {},
+        })
+    stats = app_repo.get_stats()
+    return {"ok": True, "database_enabled": True, "items": items, "stats": stats}
+
+
+@app.get("/api/applications/{record_id}")
+async def get_application(record_id: int):
+    record = app_repo.get_application(record_id)
+    if record is None:
+        if not app_repo._db_enabled():
+            return JSONResponse({"ok": False, "reason": "database_disabled"})
+        raise HTTPException(status_code=404, detail="Rekord nie istnieje.")
+    return {"ok": True, "item": record}
+
+
+@app.post("/api/applications/{record_id}/notes")
+async def update_notes(record_id: int, data: NotesRequest):
+    if not app_repo._db_enabled():
+        return JSONResponse({"ok": False, "reason": "database_disabled"})
+    ok = app_repo.update_notes(record_id, data.notes)
+    if not ok:
+        raise HTTPException(status_code=500, detail="Nie udało się zapisać notatki.")
+    return {"ok": True}
+
+
+@app.post("/api/applications/{record_id}/contact")
+async def update_contact(record_id: int, data: ContactRequest):
+    if not app_repo._db_enabled():
+        return JSONResponse({"ok": False, "reason": "database_disabled"})
+    # Basic email format check — non-blocking
+    if data.contact_email and "@" not in data.contact_email:
+        return JSONResponse(
+            status_code=422,
+            content={"ok": False, "reason": "invalid_email", "detail": "Niepoprawny format adresu email."},
+        )
+    ok = app_repo.update_contact(
+        record_id,
+        contact_person=data.contact_person,
+        contact_phone=data.contact_phone,
+        contact_email=data.contact_email,
+    )
+    if not ok:
+        raise HTTPException(status_code=500, detail="Nie udało się zapisać danych kontaktowych.")
+    updated = app_repo.get_application(record_id)
+    return {"ok": True, "item": updated}
 
 
 @app.get("/api/master-cv")

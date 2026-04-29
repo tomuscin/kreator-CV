@@ -30,3 +30,29 @@ services:
         sync: false          # login do Basic Auth (np. anna)
       - key: APP_PASSWORD
         sync: false          # hasło do Basic Auth
+      - key: RESEND_API_KEY
+        sync: false
+      - key: DB_ENABLED
+        value: "true"
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: FTP_ENABLED
+        value: "true"
+      - key: FTP_HOST
+        sync: false
+      - key: FTP_PORT
+        value: "21"
+      - key: FTP_USER
+        sync: false
+      - key: FTP_PASSWORD
+        sync: false
+      - key: FTP_BASE_DIR
+        sync: false

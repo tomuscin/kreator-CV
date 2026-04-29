@@ -271,6 +271,7 @@ def revise_field(
     user_comment: str,
     job_posting: str,
     char_limit: int,
+    cv_output_language: str = "pl",
 ) -> str:
     """
     Revises a single CV field based on user comment, respecting char limit.
@@ -285,6 +286,7 @@ def revise_field(
     Returns:
         Revised text as a plain string (no JSON wrapper).
     """
+    _lang_instruction = "English (en-US)" if cv_output_language == "en-US" else "Polish (pl)"
     response = chat(
         messages=[
             {
@@ -296,7 +298,7 @@ ZASADY:
 - Uwzględnij komentarz użytkownika
 - Nie przekraczaj {char_limit} znaków (BEZWZGLĘDNY LIMIT)
 - Zwróć TYLKO poprawiony tekst, bez komentarza, bez cudzysłowów
-- Język: polski
+- Język odpowiedzi: {_lang_instruction}
 
 Pole: {field_name}
 Limit znaków: {char_limit}"""

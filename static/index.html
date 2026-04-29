@@ -192,6 +192,31 @@
     .status.error   { background: #FEF2F2; color: var(--red); }
     .status.loading { background: #F5F5F5; color: var(--grey); }
 
+    .status-progress {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+    .status-progress-bar {
+      height: 100%;
+      background: var(--navy);
+      border-radius: 2px;
+      animation: progress-indeterminate 1.6s ease-in-out infinite;
+      transform-origin: left;
+    }
+    @keyframes progress-indeterminate {
+      0%   { transform: translateX(-100%) scaleX(0.4); }
+      50%  { transform: translateX(60%)   scaleX(0.6); }
+      100% { transform: translateX(200%)  scaleX(0.4); }
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     .hidden { display: none !important; }
 
     .spinner {
@@ -206,17 +231,156 @@
       margin-right: 6px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Dashboard ─────────────────────────────────────────────────── */
+    .tabs {
+      background: var(--navy);
+      display: flex;
+      gap: 0;
+      padding: 0 40px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.65);
+      padding: 12px 22px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all .18s;
+      font-family: inherit;
+    }
+    .tab-btn:hover { color: #fff; }
+    .tab-btn.active { color: #fff; border-bottom-color: #60A5FA; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-tile {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .stat-tile .val { font-size: 1.7rem; font-weight: 700; color: var(--navy); }
+    .stat-tile .lbl { font-size: 0.75rem; color: var(--grey); margin-top: 2px; }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+    .filter-bar select, .filter-bar input[type=text], .filter-bar input[type=date] {
+      padding: 7px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: #fff;
+    }
+    .filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: var(--blue); }
+
+    .table-wrap { overflow-x: auto; }
+    table.dash {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    table.dash th {
+      background: var(--light);
+      color: var(--grey);
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: .04em;
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    table.dash td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    table.dash tr:hover td { background: #f5f9ff; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.73rem;
+      font-weight: 600;
+    }
+    .badge-sent     { background: #d1fae5; color: #065f46; }
+    .badge-generated { background: #dbeafe; color: #1e40af; }
+    .badge-skipped  { background: #f3f4f6; color: #6b7280; }
+    .badge-error    { background: #fee2e2; color: #991b1b; }
+    .badge-en       { background: #fef3c7; color: #92400e; }
+    .badge-pl       { background: #ede9fe; color: #5b21b6; }
+
+    /* Modal */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 1000;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 32px 16px;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px;
+      width: 100%;
+      max-width: 700px;
+      position: relative;
+    }
+    .modal h3 { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 16px; }
+    .modal .close-btn {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: none; border: none;
+      font-size: 1.4rem; cursor: pointer; color: var(--grey);
+    }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-bottom: 16px; }
+    .detail-item .lbl { font-size: 0.73rem; color: var(--grey); font-weight: 600; text-transform: uppercase; letter-spacing:.04em; margin-bottom: 2px; }
+    .detail-item .val { font-size: 0.85rem; color: var(--text); word-break: break-word; }
+    .tag-list-sm { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .tag-sm { background: var(--light); border: 1px solid var(--border); border-radius: 12px; padding: 2px 8px; font-size: 0.75rem; }
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
   </style>
 </head>
 <body>
 
 <header>
   <div>
-    <h1>Kreator CV</h1>
-    <span>Anna Jakubowska — dostosowanie CV do ogłoszenia rekrutacyjnego</span>
+    <h1>Kreator CV — Anna Jakubowska</h1>
+    <span>Profil kandydata: Anna Jakubowska — dostosowanie CV do ogłoszenia rekrutacyjnego</span>
   </div>
 </header>
 
+<!-- Tab navigation -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('kreator')">✏️ Kreator CV</button>
+  <button class="tab-btn" onclick="showTab('dashboard')">📋 Historia CV</button>
+</div>
+
+<!-- ═══ KREATOR CV SECTION ════════════════════════════════════════════ -->
+<div id="section-kreator">
 <div class="container">
 
   <!-- Step indicators -->
@@ -269,7 +433,10 @@
     <div style="margin-top:20px;">
       <div id="match-score-badge"></div>
       <p id="match-notes" style="margin-top:8px; font-size:0.85rem; color:var(--grey);"></p>
-      <div id="gap-analysis-badge" style="margin-top:12px; display:none;"></div>
+      <div id="lang-badge" style="margin-top:8px; font-size:0.8rem; color:var(--grey); display:none;"></div>
+      <div id="role-badge" style="margin-top:6px; font-size:0.8rem; color:var(--grey); display:none;"></div>
+      <div id="ats-strategy-badge" style="margin-top:6px; font-size:0.8rem; color:var(--grey); display:none;"></div>
+      <div id="gap-analysis-badge" style="margin-top:10px; font-size:0.82rem; display:none;"></div>
     </div>
 
     <div class="row" style="margin-top:20px;">
@@ -283,7 +450,7 @@
 
   <!-- STEP 3: CV Preview + edit -->
   <div class="card hidden" id="card-preview">
-    <h2>Krok 3 — Podgląd i edycja CV</h2>
+    <h2>Krok 3 — Podgląd i edycja CV Anny Jakubowskiej</h2>
     <p style="font-size:0.82rem; color:var(--grey); margin-bottom:18px;">
       Sprawdź i popraw treść przed wysyłką. Możesz edytować każde pole.
       Stanowiska, daty i wykształcenie są zablokowane — tylko opisy mogą być zmienione.
@@ -348,6 +515,101 @@
     <div id="status-send" class="status hidden"></div>
   </div>
 
+</div><!-- .container -->
+</div><!-- #section-kreator -->
+
+<!-- ═══ DASHBOARD / HISTORIA CV ═══════════════════════════════════════ -->
+<div id="section-dashboard" class="hidden">
+<div class="container">
+
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+      <h2 style="margin:0;">Historia aplikacji CV</h2>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="loadDashboard()">⟳ Odśwież</button>
+        <a class="btn btn-outline btn-sm" href="/api/applications/export.csv" target="_blank">⬇ Export CSV</a>
+      </div>
+    </div>
+
+    <!-- Stats tiles -->
+    <div class="stats-grid" id="dash-stats">
+      <div class="stat-tile"><div class="val" id="s-total">—</div><div class="lbl">Wygenerowane CV</div></div>
+      <div class="stat-tile"><div class="val" id="s-sent">—</div><div class="lbl">Wysłane CV</div></div>
+      <div class="stat-tile"><div class="val" id="s-month">—</div><div class="lbl">W tym miesiącu</div></div>
+      <div class="stat-tile"><div class="val" id="s-en">—</div><div class="lbl">CV po angielsku</div></div>
+      <div class="stat-tile"><div class="val" id="s-pl">—</div><div class="lbl">CV po polsku</div></div>
+      <div class="stat-tile"><div class="val" id="s-role">—</div><div class="lbl">Dominujący typ roli</div></div>
+      <div class="stat-tile"><div class="val" id="s-err" style="color:var(--red);">—</div><div class="lbl">Błędy</div></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <select id="f-status" onchange="applyFilters()">
+        <option value="">Wszystkie statusy</option>
+        <option value="generated">generated</option>
+        <option value="storage_skipped">storage_skipped</option>
+        <option value="sent">sent</option>
+        <option value="send_error">send_error</option>
+        <option value="storage_error">storage_error</option>
+      </select>
+      <select id="f-role" onchange="applyFilters()">
+        <option value="">Wszystkie typy roli</option>
+        <option value="individual_contributor">Business Dev / Client Partner</option>
+        <option value="sales_leadership">Sales Leadership</option>
+        <option value="mixed">Mixed</option>
+        <option value="unknown">Nieustalony</option>
+      </select>
+      <select id="f-lang" onchange="applyFilters()">
+        <option value="">Wszystkie języki CV</option>
+        <option value="en-US">EN-US</option>
+        <option value="pl">PL</option>
+      </select>
+      <input type="text" id="f-company" placeholder="Szukaj firma..." style="width:150px;" oninput="applyFilters()" />
+      <input type="date" id="f-date-from" onchange="applyFilters()" title="Data od" />
+      <input type="date" id="f-date-to" onchange="applyFilters()" title="Data do" />
+      <button class="btn btn-outline btn-sm" onclick="clearFilters()">Wyczyść filtry</button>
+    </div>
+
+    <div id="dash-status" class="status hidden"></div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table class="dash">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Firma</th>
+            <th>Stanowisko</th>
+            <th>Typ roli</th>
+            <th>Język CV</th>
+            <th>Status</th>
+            <th>Ogłoszenie</th>
+            <th>Plik CV</th>
+            <th>Osoba kontaktowa</th>
+            <th>Email kontaktowy</th>
+            <th>Odbiorca maila</th>
+            <th>Data wysyłki</th>
+            <th>Notatka</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="dash-tbody">
+          <tr><td colspan="14" style="text-align:center; color:var(--grey); padding:24px;">Ładowanie...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- .container -->
+</div><!-- #section-dashboard -->
+
+<!-- ═══ DETAIL MODAL ═══════════════════════════════════════════════════ -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal" id="modal-content">
+    <button class="close-btn" onclick="closeModalDirect()">✕</button>
+    <h3 id="modal-title">Szczegóły aplikacji</h3>
+    <div id="modal-body"></div>
+  </div>
 </div>
 
 <script>
@@ -358,8 +620,328 @@
   let jobTitle    = '';
   let company     = '';
   let jobDate     = '';  // YYYY-MM-DD from date input
+  let currentRecordId = null;  // DB record id from generate-docx
 
-  // ── Step 1: fetch + analyze job posting ───────────────────────────
+  // ── Guards — prevent duplicate calls ──────────────────────────────
+  let _cvGenerating   = false;  // true while generateCV() is running
+  let _docxGenerating = false;  // true while generateDocx() is running
+  let _emailSending   = false;  // true while sendEmail() is running
+
+  // ── Tab switching ──────────────────────────────────────────────────
+  function showTab(tab) {
+    document.getElementById('section-kreator').classList.toggle('hidden', tab !== 'kreator');
+    document.getElementById('section-dashboard').classList.toggle('hidden', tab !== 'dashboard');
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', (i === 0 && tab === 'kreator') || (i === 1 && tab === 'dashboard'));
+    });
+    if (tab === 'dashboard') loadDashboard();
+  }
+
+  // ── Dashboard ──────────────────────────────────────────────────────
+  let _dashItems = [];
+
+  async function loadDashboard() {
+    showDashStatus('Ładowanie historii...', 'loading');
+    try {
+      const params = buildFilterParams();
+      const res = await fetch('/api/applications' + (params ? '?' + params : ''));
+      const data = await res.json();
+      if (!data.database_enabled) {
+        showDashStatus('Baza danych jest wyłączona (DB_ENABLED=false). Włącz DB, aby wyświetlać historię.', 'info');
+        renderStats({});
+        renderTable([]);
+        return;
+      }
+      _dashItems = data.items || [];
+      renderStats(data.stats || {});
+      renderTable(_dashItems);
+      showDashStatus('', 'hidden');
+    } catch(e) {
+      showDashStatus('Błąd ładowania historii: ' + e.message, 'error');
+    }
+  }
+
+  function buildFilterParams() {
+    const p = new URLSearchParams();
+    const status  = document.getElementById('f-status').value;
+    const role    = document.getElementById('f-role').value;
+    const lang    = document.getElementById('f-lang').value;
+    const company = document.getElementById('f-company').value.trim();
+    const from    = document.getElementById('f-date-from').value;
+    const to      = document.getElementById('f-date-to').value;
+    if (status)  p.set('status', status);
+    if (role)    p.set('role_type', role);
+    if (lang)    p.set('cv_output_language', lang);
+    if (company) p.set('company_name', company);
+    if (from)    p.set('date_from', from);
+    if (to)      p.set('date_to', to);
+    return p.toString();
+  }
+
+  function applyFilters() { loadDashboard(); }
+
+  function clearFilters() {
+    document.getElementById('f-status').value = '';
+    document.getElementById('f-role').value = '';
+    document.getElementById('f-lang').value = '';
+    document.getElementById('f-company').value = '';
+    document.getElementById('f-date-from').value = '';
+    document.getElementById('f-date-to').value = '';
+    loadDashboard();
+  }
+
+  function renderStats(s) {
+    const _ROLE_LABELS = {
+      individual_contributor: 'BD/Client Partner',
+      sales_leadership: 'Sales Leadership',
+      mixed: 'Mixed',
+      unknown: 'Nieustalony',
+    };
+    document.getElementById('s-total').textContent = s.total ?? '—';
+    document.getElementById('s-sent').textContent  = s.sent  ?? '—';
+    document.getElementById('s-month').textContent = s.this_month ?? '—';
+    document.getElementById('s-en').textContent    = s.en_us ?? '—';
+    document.getElementById('s-pl').textContent    = s.pl ?? '—';
+    document.getElementById('s-role').textContent  = _ROLE_LABELS[s.top_role_type] || s.top_role_type || '—';
+    document.getElementById('s-err').textContent   = s.errors ?? '—';
+  }
+
+  function _statusBadge(status) {
+    const cls = {
+      sent:            'badge-sent',
+      generated:       'badge-generated',
+      storage_skipped: 'badge-skipped',
+      storage_error:   'badge-error',
+      send_error:      'badge-error',
+      database_disabled: 'badge-skipped',
+    }[status] || 'badge-skipped';
+    return `<span class="badge ${cls}">${status || '—'}</span>`;
+  }
+
+  function _langBadge(lang) {
+    if (!lang) return '—';
+    const cls = lang === 'en-US' ? 'badge-en' : 'badge-pl';
+    return `<span class="badge ${cls}">${lang}</span>`;
+  }
+
+  function renderTable(items) {
+    const tbody = document.getElementById('dash-tbody');
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; color:var(--grey); padding:20px;">Brak rekordów</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(r => {
+      const date    = (r.created_at || '').slice(0, 10);
+      const sentAt  = (r.sent_at || '').slice(0, 10);
+      const fileCell = r.cv_public_url
+        ? `<a href="${esc(r.cv_public_url)}" target="_blank" style="color:var(--blue);">⬇ Pobierz</a>`
+        : (r.cv_filename ? `<span title="${esc(r.cv_local_path || r.cv_filename)}" style="color:var(--grey); cursor:default;">📄 ${esc(r.cv_filename)}</span>` : '—');
+      const jobLink = r.job_url
+        ? `<a href="${esc(r.job_url)}" target="_blank" style="color:var(--blue);">🔗</a>`
+        : '—';
+      return `<tr>
+        <td>${date}</td>
+        <td title="${esc(r.company_name)}">${esc(r.company_name) || '—'}</td>
+        <td title="${esc(r.job_title)}">${esc(r.job_title) || '—'}</td>
+        <td><span style="font-size:0.75rem; color:var(--grey);">${esc(r.role_type_label || r.role_type) || '—'}</span></td>
+        <td>${_langBadge(r.cv_output_language)}</td>
+        <td>${_statusBadge(r.status)}</td>
+        <td>${jobLink}</td>
+        <td style="max-width:160px;">${fileCell}</td>
+        <td title="${esc(r.contact_person)}">${esc(r.contact_person) || '—'}</td>
+        <td title="${esc(r.contact_email)}">${esc(r.contact_email) || '—'}</td>
+        <td title="${esc(r.sent_to_email)}">${esc(r.sent_to_email) || '—'}</td>
+        <td>${sentAt || '—'}</td>
+        <td title="${esc(r.notes)}" style="max-width:120px;">${esc(r.notes) || '—'}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-outline btn-sm" onclick="openDetail(${r.id})">Szczegóły</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function showDashStatus(msg, type) {
+    const el = document.getElementById('dash-status');
+    if (type === 'hidden' || !msg) { el.className = 'status hidden'; return; }
+    el.className = `status ${type}`;
+    el.innerHTML = type === 'loading' ? `<span class="spinner"></span>${msg}` : msg;
+  }
+
+  // ── Detail modal ───────────────────────────────────────────────────
+  async function openDetail(id) {
+    document.getElementById('modal-bg').classList.add('open');
+    document.getElementById('modal-body').innerHTML = '<p style="color:var(--grey);">Ładowanie...</p>';
+    document.getElementById('modal-title').textContent = `Aplikacja #${id}`;
+    try {
+      const res  = await fetch(`/api/applications/${id}`);
+      const data = await res.json();
+      if (!data.ok) {
+        document.getElementById('modal-body').innerHTML = `<p style="color:var(--red);">Błąd: ${data.reason || 'nieznany błąd'}</p>`;
+        return;
+      }
+      renderDetail(data.item);
+    } catch(e) {
+      document.getElementById('modal-body').innerHTML = `<p style="color:var(--red);">Błąd ładowania: ${e.message}</p>`;
+    }
+  }
+
+  function renderDetail(r) {
+    const _ROLE_LABELS = {
+      individual_contributor: 'Business Development / Client Partner',
+      sales_leadership: 'Sales Leadership / Management',
+      mixed: 'Mixed — sprzedaż indywidualna + leadership',
+      unknown: 'Nieustalony',
+    };
+    const parseList = v => {
+      if (!v) return [];
+      try { return JSON.parse(v); } catch { return v.split(',').map(s => s.trim()).filter(Boolean); }
+    };
+
+    const fileLink = r.cv_public_url
+      ? `<a href="${esc(r.cv_public_url)}" target="_blank" style="color:var(--blue);">Pobierz CV</a>`
+      : (r.cv_filename || r.cv_local_path || '—');
+
+    const strengths    = parseList(r.confirmed_strengths);
+    const gaps         = parseList(r.gaps);
+    const transferable = parseList(r.transferable_angles);
+    const doNotClaim   = parseList(r.do_not_claim);
+    const usedKw       = parseList(r.used_keywords);
+    const exclKw       = parseList(r.excluded_keywords);
+
+    const tagList = items => items.length
+      ? `<div class="tag-list-sm">${items.map(i => `<span class="tag-sm">${esc(i)}</span>`).join('')}</div>`
+      : '—';
+
+    document.getElementById('modal-body').innerHTML = `
+      <div class="detail-grid">
+        <div class="detail-item"><div class="lbl">Firma</div><div class="val">${esc(r.company_name) || '—'}</div></div>
+        <div class="detail-item"><div class="lbl">Stanowisko</div><div class="val">${esc(r.job_title) || '—'}</div></div>
+        <div class="detail-item"><div class="lbl">Typ roli</div><div class="val">${esc(_ROLE_LABELS[r.role_type] || r.role_type) || '—'}</div></div>
+        <div class="detail-item"><div class="lbl">Język ogłoszenia</div><div class="val">${esc(r.job_language) || '—'}</div></div>
+        <div class="detail-item"><div class="lbl">Język CV</div><div class="val">${_langBadge(r.cv_output_language)}</div></div>
+        <div class="detail-item"><div class="lbl">Status</div><div class="val">${_statusBadge(r.status)}</div></div>
+        <div class="detail-item"><div class="lbl">Data aplikacji</div><div class="val">${(r.created_at || '').slice(0,10) || '—'}</div></div>
+        <div class="detail-item"><div class="lbl">Data ogłoszenia</div><div class="val">${r.job_posting_date || '—'}</div></div>
+        <div class="detail-item"><div class="lbl">Odbiorca maila</div><div class="val">${esc(r.sent_to_email) || '—'}</div></div>
+        <div class="detail-item"><div class="lbl">Data wysyłki</div><div class="val">${(r.sent_at || '').slice(0,16) || '—'}</div></div>
+        <div class="detail-item" style="grid-column:span 2;"><div class="lbl">Link do ogłoszenia</div><div class="val">${r.job_url ? `<a href="${esc(r.job_url)}" target="_blank">${esc(r.job_url)}</a>` : '—'}</div></div>
+        <div class="detail-item" style="grid-column:span 2;"><div class="lbl">Plik CV</div><div class="val">${fileLink}</div></div>
+        ${r.error_message ? `<div class="detail-item" style="grid-column:span 2;"><div class="lbl" style="color:var(--red);">Błąd</div><div class="val" style="color:var(--red);">${esc(r.error_message)}</div></div>` : ''}
+      </div>
+
+      <hr class="section-divider">
+      <div style="margin-bottom:12px;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;">Analiza dopasowania</div>
+        <div style="margin-bottom:6px;"><span style="font-size:0.73rem; color:var(--grey); font-weight:600;">Match score:</span> <strong>${r.match_score ?? '—'}</strong></div>
+        <div style="margin-bottom:4px; font-size:0.73rem; color:var(--grey); font-weight:600;">Potwierdzone mocne strony</div>${tagList(strengths)}
+        <div style="margin-top:8px; margin-bottom:4px; font-size:0.73rem; color:var(--grey); font-weight:600;">Luki</div>${tagList(gaps)}
+        <div style="margin-top:8px; margin-bottom:4px; font-size:0.73rem; color:var(--grey); font-weight:600;">Transferowalne</div>${tagList(transferable)}
+        <div style="margin-top:8px; margin-bottom:4px; font-size:0.73rem; color:var(--grey); font-weight:600;">Nie dopisuj</div>${tagList(doNotClaim)}
+        <div style="margin-top:8px; margin-bottom:4px; font-size:0.73rem; color:var(--grey); font-weight:600;">Użyte słowa kluczowe ATS</div>${tagList(usedKw)}
+        <div style="margin-top:8px; margin-bottom:4px; font-size:0.73rem; color:var(--grey); font-weight:600;">Pominięte słowa kluczowe ATS</div>${tagList(exclKw)}
+      </div>
+
+      <hr class="section-divider">
+      <div style="font-size:0.75rem; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:.04em; margin-bottom:12px;">Dane kontaktowe</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+        <div>
+          <label style="font-size:0.75rem; font-weight:600; color:var(--grey); display:block; margin-bottom:4px;">Osoba kontaktowa</label>
+          <input type="text" id="ci-person-${r.id}" value="${esc(r.contact_person || '')}" placeholder="Imię i nazwisko" style="width:100%; padding:8px 12px; border:1.5px solid var(--border); border-radius:7px; font-size:0.85rem; font-family:inherit;" />
+        </div>
+        <div>
+          <label style="font-size:0.75rem; font-weight:600; color:var(--grey); display:block; margin-bottom:4px;">Numer telefonu</label>
+          <input type="text" id="ci-phone-${r.id}" value="${esc(r.contact_phone || '')}" placeholder="+48 ..." style="width:100%; padding:8px 12px; border:1.5px solid var(--border); border-radius:7px; font-size:0.85rem; font-family:inherit;" />
+        </div>
+        <div style="grid-column:span 2;">
+          <label style="font-size:0.75rem; font-weight:600; color:var(--grey); display:block; margin-bottom:4px;">Adres e-mail kontaktu</label>
+          <input type="text" id="ci-email-${r.id}" value="${esc(r.contact_email || '')}" placeholder="rekruter@firma.pl" style="width:100%; padding:8px 12px; border:1.5px solid var(--border); border-radius:7px; font-size:0.85rem; font-family:inherit;" />
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="saveContact(${r.id})">Zapisz kontakt</button>
+      <span id="ci-status-${r.id}" style="margin-left:10px; font-size:0.82rem;"></span>
+
+      <hr class="section-divider">
+      <div style="font-size:0.75rem; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;">Notatka</div>
+      <textarea id="ci-notes-${r.id}" rows="3" style="width:100%; padding:8px 12px; border:1.5px solid var(--border); border-radius:7px; font-size:0.85rem; font-family:inherit; resize:vertical;">${esc(r.notes || '')}</textarea>
+      <div style="margin-top:8px;">
+        <button class="btn btn-outline btn-sm" onclick="saveNotes(${r.id})">Zapisz notatkę</button>
+        <span id="ni-status-${r.id}" style="margin-left:10px; font-size:0.82rem;"></span>
+      </div>
+    `;
+  }
+
+  async function saveContact(id) {
+    const person = document.getElementById(`ci-person-${id}`)?.value || '';
+    const phone  = document.getElementById(`ci-phone-${id}`)?.value || '';
+    const email  = document.getElementById(`ci-email-${id}`)?.value || '';
+    const statusEl = document.getElementById(`ci-status-${id}`);
+    statusEl.textContent = 'Zapisuję...';
+    statusEl.style.color = 'var(--grey)';
+    try {
+      const res = await fetch(`/api/applications/${id}/contact`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ contact_person: person, contact_phone: phone, contact_email: email }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        statusEl.textContent = data.detail || data.reason || 'Błąd zapisu';
+        statusEl.style.color = 'var(--red)';
+        return;
+      }
+      statusEl.textContent = '✓ Zapisano dane kontaktowe';
+      statusEl.style.color = 'var(--green)';
+      loadDashboard();
+    } catch(e) {
+      statusEl.textContent = 'Błąd połączenia';
+      statusEl.style.color = 'var(--red)';
+    }
+  }
+
+  async function saveNotes(id) {
+    const notes = document.getElementById(`ci-notes-${id}`)?.value || '';
+    const statusEl = document.getElementById(`ni-status-${id}`);
+    statusEl.textContent = 'Zapisuję...';
+    statusEl.style.color = 'var(--grey)';
+    try {
+      const res = await fetch(`/api/applications/${id}/notes`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ notes }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        statusEl.textContent = data.detail || data.reason || 'Błąd zapisu';
+        statusEl.style.color = 'var(--red)';
+        return;
+      }
+      statusEl.textContent = '✓ Zapisano notatkę';
+      statusEl.style.color = 'var(--green)';
+      loadDashboard();
+    } catch(e) {
+      statusEl.textContent = 'Błąd połączenia';
+      statusEl.style.color = 'var(--red)';
+    }
+  }
+
+  function closeModal(evt) {
+    if (evt.target === document.getElementById('modal-bg')) closeModalDirect();
+  }
+  function closeModalDirect() {
+    document.getElementById('modal-bg').classList.remove('open');
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+    // ── Step 1: fetch + analyze job posting ───────────────────────────
   async function analyzeJob() {
     const url  = document.getElementById('job-url').value.trim();
     const text = document.getElementById('job-text').value.trim();
@@ -386,9 +968,10 @@
     const a = res.analysis;
     jobPosting = res.job_posting;
 
-    // Pre-fill editable fields from LLM analysis
     if (a.job_title) document.getElementById('field-job-title').value = a.job_title;
     if (a.company)   document.getElementById('field-company').value   = a.company;
+    if (a.job_posting_date && !document.getElementById('field-job-date').value)
+      document.getElementById('field-job-date').value = a.job_posting_date;
 
     const grid = document.getElementById('analysis-grid');
     grid.innerHTML = `
@@ -400,11 +983,12 @@
       ${analysisBlock('Słowa kluczowe ATS', a.ats_keywords || [], true)}
     `;
 
-    // Match score — shown after CV generation
     document.getElementById('match-score-badge').innerHTML = '';
     document.getElementById('match-notes').textContent = '';
+    document.getElementById('lang-badge').style.display = 'none';
+    document.getElementById('role-badge').style.display = 'none';
+    document.getElementById('ats-strategy-badge').style.display = 'none';
     document.getElementById('gap-analysis-badge').style.display = 'none';
-    document.getElementById('gap-analysis-badge').innerHTML = '';
 
     setStep(2);
     document.getElementById('card-analysis').classList.remove('hidden');
@@ -418,36 +1002,183 @@
     return `<div class="analysis-item"><h3>${title}</h3><div class="tag-list">${tags || '<span class="tag">—</span>'}</div></div>`;
   }
 
-  // ── Step 2: generate adapted CV ───────────────────────────────────
+  // ── Step 2: generate adapted CV (SSE streaming — avoids 30s timeout) ──
   async function generateCV() {
-    showStatus('status-adapt', 'Generuję dopasowane CV przez GPT-5.5...', 'loading');
-    try {
-      const res = await api('/api/adapt', { job_posting: jobPosting });
-      adaptedCV = res.adapted_cv;
+    if (_cvGenerating) return;  // block duplicate clicks
+    _cvGenerating = true;
 
-      // Show match score
+    const btn = document.querySelector('#card-analysis .btn-navy');
+    if (btn) btn.disabled = true;
+
+    const steps = [
+      'Łączę z modelem AI...',
+      'Model AI analizuje ogłoszenie i dobiera treści CV...',
+      'Generuję dopasowane CV — proszę czekać (może zająć 30-60s)...',
+    ];
+    let stepIdx = 0;
+    showStatus('status-adapt', steps[stepIdx], 'loading');
+
+    // Cycle progress messages so user knows app is working
+    const stepTimer = setInterval(() => {
+      stepIdx = Math.min(stepIdx + 1, steps.length - 1);
+      showStatus('status-adapt', steps[stepIdx], 'loading');
+    }, 8000);
+
+    try {
+      const resp = await fetch('/api/adapt-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_posting: jobPosting }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: `Błąd serwera (HTTP ${resp.status})` }));
+        throw new Error(err.detail || `Błąd serwera (HTTP ${resp.status})`);
+      }
+      const reader  = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split('\n\n');
+        buffer = chunks.pop();
+        for (const chunk of chunks) {
+          const line = chunk.trim();
+          if (!line.startsWith('data:')) continue;
+          let payload;
+          try { payload = JSON.parse(line.slice(5).trim()); }
+          catch { continue; }
+
+          if (payload.status === 'started') {
+            clearInterval(stepTimer);
+            showStatus('status-adapt', 'Model AI generuje CV — proszę czekać...', 'loading');
+          } else if (payload.status === 'done') {
+            clearInterval(stepTimer);
+            _applyAdaptedCV(payload.adapted_cv);
+          } else if (payload.status === 'error') {
+            clearInterval(stepTimer);
+            throw new Error(payload.detail || 'Nieznany błąd adaptacji CV');
+          }
+        }
+      }
+    } catch(e) {
+      clearInterval(stepTimer);
+      showStatus('status-adapt', `<strong>Błąd:</strong> ${e.message}`, 'error');
+    } finally {
+      _cvGenerating = false;
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function _applyAdaptedCV(adapted) {
+      adaptedCV = adapted;
+
       const score = adaptedCV.match_score || 0;
       const cls   = score >= 75 ? 'match-high' : score >= 50 ? 'match-medium' : 'match-low';
       document.getElementById('match-score-badge').innerHTML =
         `<span class="match-badge ${cls}">Dopasowanie: ${score}/100</span>`;
       document.getElementById('match-notes').textContent = adaptedCV.match_notes || '';
 
-      // Gap analysis badge
+      // ── Language badge ────────────────────────────────────────────
+      const langBadge = document.getElementById('lang-badge');
+      const jobLang   = adaptedCV.job_language || 'unknown';
+      const cvLang    = adaptedCV.cv_output_language || 'pl';
+      const langConf  = adaptedCV.language_confidence || 'low';
+
+      const jobLangLabel = jobLang === 'en' ? 'English' : jobLang === 'pl' ? 'Polski' : 'nieznany';
+      const cvLangLabel  = cvLang  === 'en-US' ? 'English US' : 'Polski';
+
+      let langHTML = `Język ogłoszenia: <strong>${jobLangLabel}</strong> &nbsp;|&nbsp; Język CV: <strong>${cvLangLabel}</strong>`;
+      if (langConf === 'low') {
+        langHTML += `<br><span style="color:#e07b00;">Nie udało się jednoznacznie wykryć języka ogłoszenia. Domyślnie wygenerowano CV po polsku.</span>`;
+      }
+      langBadge.innerHTML = langHTML;
+      langBadge.style.display = 'block';
+      // ─────────────────────────────────────────────────────────────
+
+      // ── Role type badge ───────────────────────────────────────────
+      const roleBadge   = document.getElementById('role-badge');
+      const roleType    = adaptedCV.role_type || 'unknown';
+      const roleConf    = adaptedCV.role_type_confidence || 'low';
+      const roleReason  = adaptedCV.role_type_reasoning || '';
+      const cvEmphasis  = adaptedCV.cv_emphasis || [];
+
+      const roleTypeLabel = {
+        individual_contributor: 'Business Development / Client Partner',
+        sales_leadership:       'Sales Leadership / Management',
+        mixed:                  'Mixed — sprzedaż indywidualna + leadership',
+        unknown:                'Nieustalony',
+      }[roleType] || 'Nieustalony';
+
+      let roleHTML = `Typ roli: <strong>${roleTypeLabel}</strong>`;
+      if (roleConf === 'low') {
+        roleHTML += ` <span style="color:#e07b00;">(niska pewność klasyfikacji)</span>`;
+      }
+      if (roleReason) {
+        roleHTML += `<br><span style="color:var(--grey);">${roleReason}</span>`;
+      }
+      if (cvEmphasis.length > 0) {
+        roleHTML += `<br><span style="color:var(--grey);">Akcenty CV: ${cvEmphasis.join(' · ')}</span>`;
+      }
+      roleBadge.innerHTML = roleHTML;
+      roleBadge.style.display = 'block';
+      // ─────────────────────────────────────────────────────────────
+
+      // ── ATS keyword strategy badge ────────────────────────────────
+      const atsBadge  = document.getElementById('ats-strategy-badge');
+      const atsStrat  = adaptedCV.ats_keyword_strategy || {};
+      const usedKws   = atsStrat.used_keywords || [];
+      const exclKws   = atsStrat.excluded_keywords || [];
+      const atsNote   = atsStrat.naturalness_notes || '';
+
+      if (usedKws.length > 0 || exclKws.length > 0 || atsNote) {
+        let atsHTML = '<strong>ATS:</strong>';
+        if (usedKws.length > 0) {
+          atsHTML += `<br>Użyte naturalnie: <span style="color:var(--navy);">${usedKws.join(' · ')}</span>`;
+        }
+        if (exclKws.length > 0) {
+          atsHTML += `<br>Pominięte: <span style="color:var(--grey);">${exclKws.join(' · ')}</span>`;
+        }
+        if (atsNote) {
+          atsHTML += `<br><em>${atsNote}</em>`;
+        }
+        atsBadge.innerHTML = atsHTML;
+        atsBadge.style.display = 'block';
+      }
+      // ─────────────────────────────────────────────────────────────
+
+      // ── Gap analysis badge ─────────────────────────────────────────────
       const gapBadge = document.getElementById('gap-analysis-badge');
       const gapAnalysis = adaptedCV.experience_gap_analysis || {};
-      const gapTitle = (
-        (gapAnalysis.title || '').toLowerCase().startsWith('experience') ||
-        (gapAnalysis.title || '').toLowerCase().startsWith('niedopasowanie')
-      ) ? gapAnalysis.title : 'Niedopasowanie doświadczenia do ogłoszenia';
-      const gapText         = gapAnalysis.text || '';
-      const gapConfirmed    = gapAnalysis.confirmed_strengths || [];
-      const gapGaps         = gapAnalysis.gaps || [];
-      const gapTransferable = gapAnalysis.transferable_angles || [];
-      const gapDoNotClaim   = gapAnalysis.do_not_claim || [];
+      const cvLangForGap = adaptedCV.cv_output_language || 'pl';
+      const _gapFallbackTitle = cvLangForGap === 'en-US'
+        ? 'Experience gaps vs. job posting'
+        : 'Niedopasowanie doświadczenia do ogłoszenia';
+      // Sanitise title: reject empty or clearly truncated values (e.g. missing first letter)
+      const _rawGapTitle = gapAnalysis.title || '';
+      const gapTitle = (_rawGapTitle && _rawGapTitle.toLowerCase().startsWith('exp'))
+        ? _rawGapTitle
+        : (_rawGapTitle && !_rawGapTitle.toLowerCase().startsWith('e'))
+          ? _rawGapTitle
+          : _gapFallbackTitle;
+      // Simpler: always use fallback if title doesn't start with correct first letter
+      const gapTitleSafe = (
+        _rawGapTitle.toLowerCase().startsWith('experience') ||
+        _rawGapTitle.toLowerCase().startsWith('niedopasowanie')
+      ) ? _rawGapTitle : _gapFallbackTitle;
+      const gapText  = gapAnalysis.text  || '';
+      const gapConfirmed     = gapAnalysis.confirmed_strengths || [];
+      const gapGaps          = gapAnalysis.gaps || [];
+      const gapTransferable  = gapAnalysis.transferable_angles || [];
+      const gapDoNotClaim    = gapAnalysis.do_not_claim || [];
 
       if (gapText || gapGaps.length > 0) {
         let gapHTML = `<div style="border-left:3px solid #e07b00; padding:8px 12px; background:#fff8f0; border-radius:0 8px 8px 0;">`;
-        gapHTML += `<div style="font-weight:600; color:#b05000; margin-bottom:6px;">${gapTitle}</div>`;
+        if (gapTitleSafe) {
+          gapHTML += `<div style="font-weight:600; color:#b05000; margin-bottom:6px;">${gapTitleSafe}</div>`;
+        }
         if (gapText) {
           gapHTML += `<div style="color:#4a3000; line-height:1.5;">${gapText}</div>`;
         }
@@ -467,8 +1198,8 @@
         gapBadge.innerHTML = gapHTML;
         gapBadge.style.display = 'block';
       }
+      // ─────────────────────────────────────────────────────
 
-      // Sync job_title/company from analysis if fields still empty
       if (!document.getElementById('field-job-title').value && adaptedCV.job_title)
         document.getElementById('field-job-title').value = adaptedCV.job_title;
       if (!document.getElementById('field-company').value && adaptedCV.company)
@@ -479,9 +1210,6 @@
       setStep(3);
       document.getElementById('card-preview').classList.remove('hidden');
       document.getElementById('card-preview').scrollIntoView({ behavior: 'smooth' });
-    } catch(e) {
-      showStatus('status-adapt', e.message, 'error');
-    }
   }
 
   // ── CV Preview renderer ────────────────────────────────────────────
@@ -552,7 +1280,6 @@
     const current = collectEditedCV();
     if (!current) return;
 
-    // Add user bubble to chat history
     addChatBubble('user', instruction);
     document.getElementById('chat-instruction').value = '';
     document.getElementById('btn-chat-send').disabled = true;
@@ -598,12 +1325,17 @@
 
   // ── Step 3: Generate .docx ────────────────────────────────────────
   async function generateDocx() {
+    if (_docxGenerating) return;  // block duplicate clicks
     const edited = collectEditedCV();
     if (!edited) return;
 
+    _docxGenerating = true;
+    const btn = document.querySelector('#card-preview .row .btn-navy');
+    if (btn) btn.disabled = true;
+
     jobTitle = document.getElementById('field-job-title').value.trim();
     company  = document.getElementById('field-company').value.trim();
-    jobDate  = document.getElementById('field-job-date').value; // YYYY-MM-DD
+    jobDate  = document.getElementById('field-job-date').value;
 
     showStatus('status-docx', 'Generuję plik .docx...', 'loading');
     try {
@@ -617,9 +1349,9 @@
       });
       docxUrl      = res.download_url;
       docxFilename = res.filename;
+      currentRecordId = res.record_id || null;
       document.getElementById('docx-download-link').href = docxUrl;
 
-      // Auto-fill subject: CV {firma} {stanowisko} {YYYY.MM.DD}
       const dateFmt = jobDate ? jobDate.replaceAll('-', '.') : new Date().toISOString().slice(0,10).replaceAll('-','.');
       const subject = ['CV', company, jobTitle, dateFmt].filter(Boolean).join(' ');
       document.getElementById('email-subject').value = subject;
@@ -629,12 +1361,16 @@
       document.getElementById('card-send').classList.remove('hidden');
       document.getElementById('card-send').scrollIntoView({ behavior: 'smooth' });
     } catch(e) {
-      showStatus('status-docx', e.message, 'error');
+      showStatus('status-docx', `<strong>Błąd:</strong> ${e.message}`, 'error');
+    } finally {
+      _docxGenerating = false;
+      if (btn) btn.disabled = false;
     }
   }
 
   // ── Step 4: Send email ────────────────────────────────────────────
   async function sendEmail() {
+    if (_emailSending) return;  // block duplicate clicks
     const to      = document.getElementById('to-email').value.trim();
     const subject = document.getElementById('email-subject').value.trim();
     if (!to) { showStatus('status-send', 'Podaj adres email odbiorcy.', 'error'); return; }
@@ -642,28 +1378,36 @@
     const edited = collectEditedCV();
     if (!edited) return;
 
+    _emailSending = true;
+    const btnSend = document.querySelector('#card-send .btn-navy');
+    if (btnSend) btnSend.disabled = true;
+
     showStatus('status-send', 'Wysyłam email...', 'loading');
     try {
       await api('/api/send-email', {
-        cv_data:  edited,
-        to_email: to,
+        cv_data:   edited,
+        to_email:  to,
         subject,
         filename:  docxFilename,
         job_title: jobTitle,
         company:   company,
         job_url:   document.getElementById('job-url').value.trim(),
         job_date:  jobDate,
+        record_id: currentRecordId,
       });
       showStatus('status-send', `Email wysłany na ${to} ✓`, 'success');
     } catch(e) {
-      showStatus('status-send', e.message, 'error');
+      showStatus('status-send', `<strong>Błąd:</strong> ${e.message}`, 'error');
+    } finally {
+      _emailSending = false;
+      if (btnSend) btnSend.disabled = false;
     }
   }
 
   // ── Collect edited CV data from form ─────────────────────────────
   function collectEditedCV() {
     if (!adaptedCV) return null;
-    const cv = JSON.parse(JSON.stringify(adaptedCV)); // deep clone
+    const cv = JSON.parse(JSON.stringify(adaptedCV));
 
     cv.summary      = document.getElementById('cv-summary')?.value || cv.summary;
     cv.competencies = (document.getElementById('cv-competencies')?.value || '')
@@ -700,9 +1444,11 @@
     if (!el) return;
     if (type === 'hidden' || !msg) { el.className = 'status hidden'; return; }
     el.className = `status ${type}`;
-    el.innerHTML = type === 'loading'
-      ? `<span class="spinner"></span>${msg}`
-      : msg;
+    if (type === 'loading') {
+      el.innerHTML = `<span class="spinner"></span>${msg}<div class="status-progress"><div class="status-progress-bar"></div></div>`;
+    } else {
+      el.innerHTML = msg;
+    }
   }
 
   function setStep(n) {

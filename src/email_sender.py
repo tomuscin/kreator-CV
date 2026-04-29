@@ -13,7 +13,6 @@ from email.header import Header
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from pathlib import Path
 
 import certifi
 from dotenv import load_dotenv
@@ -55,7 +54,8 @@ def send_cv(
     to: str,
     subject: str,
     body_html: str,
-    docx_path: Path,
+    docx_bytes: bytes,
+    docx_filename: str,
     body_plain: str | None = None,
 ) -> None:
     """
@@ -65,16 +65,10 @@ def send_cv(
     Falls back to SMTP for local development.
 
     Raises:
-        FileNotFoundError: If docx_path does not exist.
         RuntimeError: On configuration or delivery errors.
     """
-    if not docx_path.exists():
-        raise FileNotFoundError(f"Plik CV nie istnieje: {docx_path}")
-
-    docx_bytes    = docx_path.read_bytes()
-    docx_filename = docx_path.name
-    plain         = body_plain or _strip_html(body_html)
-    from_field    = f"{SMTP_FROM_NAME} <{SMTP_FROM}>" if SMTP_FROM_NAME else SMTP_FROM
+    plain      = body_plain or _strip_html(body_html)
+    from_field = f"{SMTP_FROM_NAME} <{SMTP_FROM}>" if SMTP_FROM_NAME else SMTP_FROM
 
     if RESEND_API_KEY:
         _send_via_resend(to, subject, body_html, plain, from_field, docx_bytes, docx_filename)
